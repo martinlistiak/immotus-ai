@@ -34,6 +34,8 @@ export const ObjectInspector = () => {
     [scene?.objects]
   );
 
+  console.log(nodes, scene?.objects);
+
   return (
     <Card className="fixed top-4 !p-0 left-4 bottom-4 w-[230px] h-[calc(100vh-2rem)]">
       <div className="flex items-center gap-3 p-4 border-b border-gray-800 mb-4">

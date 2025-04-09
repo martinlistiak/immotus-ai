@@ -81,7 +81,7 @@ export function MeshComponent(props: {
         )}
       </mesh>
       {/* Conditional mesh helper */}
-      {(isHovered ||
+      {/* {(isHovered ||
         selectedObjects.some((object) => object.id === props.object.id)) &&
         meshRef.current && (
           <primitive
@@ -95,7 +95,7 @@ export function MeshComponent(props: {
               linewidth={40}
             />
           </primitive>
-        )}
+        )} */}
     </>
   );
 }

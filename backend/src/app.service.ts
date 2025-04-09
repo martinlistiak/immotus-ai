@@ -7,7 +7,7 @@ import * as path from 'path';
 import * as dotenv from 'dotenv';
 import { Response } from 'express';
 import { tools } from './tools';
-import { ToolUnion } from '@anthropic-ai/sdk/resources';
+import { ToolUnion, ToolUseBlock } from '@anthropic-ai/sdk/resources';
 import { ConversationService } from './api/conversation/conversation.service';
 dotenv.config();
 
@@ -70,7 +70,7 @@ export class AppService {
         max_tokens: 8000,
         temperature: 0.3,
         system:
-          'You are 3d designer, an architect and a interior designer. You are assisting with creating beautiful interior models. When modeling 1 meter equals 1 in scale.',
+          'You are 3d designer, an architect and a interior designer. You are assisting with creating beautiful interior models. When modeling 1 meter equals 1 in scale. Always put tool_use into a separate content message.',
         messages: [
           ...(conversation || []),
           {
@@ -79,6 +79,7 @@ export class AppService {
           },
         ],
         tools: tools as unknown as ToolUnion[],
+        tool_choice: { type: 'any' },
       });
 
       console.log(response.content);
@@ -95,7 +96,7 @@ export class AppService {
 
       // Check if a tool was used
       let textContent = '';
-      const toolCalls: any[] = [];
+      const toolCalls: ToolUseBlock[] = [];
 
       // Extract text from the response
       if (response.content) {
@@ -120,6 +121,7 @@ export class AppService {
       // Process any tool calls
       for (const toolCall of toolCalls) {
         if (toolCall.name === 'SET_SCENE') {
+          // @ts-ignore
           const scene = toolCall.input.scene;
           if (scene) {
             // Send a scene update event to the client

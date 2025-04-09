@@ -128,6 +128,7 @@ const TreeNode = ({
   } = useSceneContext();
 
   const [isGroupOpen, setIsGroupOpen] = useState(true);
+  console.log(nodes);
 
   const isHovered = hoveredObject?.id === node.id;
   const isSelected = selectedObjects.some((object) => object.id === node.id);

@@ -30,14 +30,6 @@ export const FloatingSpeechBubble = () => {
   const [expandedToolPayloadIndex, setExpandedToolPayloadIndex] = useState<
     number | null
   >(null);
-
-  useEffect(() => {
-    // Check if MediaRecorder is supported
-    if ("MediaRecorder" in window) {
-      setIsSupported(true);
-    }
-  }, []);
-
   useEffect(() => {
     // Clean up EventSource when component unmounts
     return () => {
@@ -264,13 +256,6 @@ export const FloatingSpeechBubble = () => {
       chunksRef.current = [];
       setIsRecording(true);
     }
-  };
-
-  // Don't render the button if recording is not supported
-  if (!isSupported) return null;
-
-  const clearHistory = () => {
-    setMessages([]);
   };
 
   return (

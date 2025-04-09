@@ -1,10 +1,16 @@
-import type { AbstractSyntaxTree, LightAttributes } from "app/types/scene-ast";
+import { BoxHelper } from "three";
+import type {
+  AbstractSyntaxTree,
+  BoxAttributes,
+  ObjectAttributes,
+  SphereAttributes,
+} from "app/types/scene-ast";
 import { useSceneContext } from "../Scene.context";
 import { useRef } from "react";
 import type { Mesh, Vector3 } from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 
-export function LightPlacer({
+export function SpherePlacer({
   setGhostBoxPosition,
   ghostBoxPosition,
 }: {
@@ -16,7 +22,7 @@ export function LightPlacer({
   const planeRef = useRef<Mesh>(null);
 
   useFrame(() => {
-    if (activeTool !== "light" || !planeRef.current) return;
+    if (activeTool !== "sphere" || !planeRef.current) return;
 
     // Update raycaster with current mouse position
     raycaster.setFromCamera(mouse, camera);
@@ -30,10 +36,10 @@ export function LightPlacer({
       // Snap to grid (round to nearest integer)
       snapPosition.x = Math.round(snapPosition.x);
       snapPosition.z = Math.round(snapPosition.z);
-      snapPosition.y = 10;
+      snapPosition.y = 0.5; // Half the height of the box
 
       // Check for existing boxes to snap to
-      const SNAP_THRESHOLD = 1.5;
+      const SNAP_THRESHOLD = 0.5;
       let closestDistance = SNAP_THRESHOLD;
       let snapToTop = false;
       let snapX = snapPosition.x;
@@ -43,7 +49,7 @@ export function LightPlacer({
       // Use scene objects from the context
       if (scene?.objects && scene.objects.length > 0) {
         scene.objects.forEach((object) => {
-          if (object.type === "light") {
+          if (object.type === "box") {
             const objPos = object.attributes.position;
             const objScale = object.attributes.scale;
 
@@ -93,72 +99,107 @@ export function LightPlacer({
         position={[0, 0, 0]}
       >
         <planeGeometry args={[1000, 1000]} />
-        {/* <meshBasicMaterial color="red" /> */}
+        <meshBasicMaterial />
       </mesh>
 
       {/* Ghost box preview */}
-      {ghostBoxPosition && activeTool === "light" && (
-        <>
-          <pointLight
-            position={[
-              ghostBoxPosition.x,
-              ghostBoxPosition.y,
-              ghostBoxPosition.z,
-            ]}
-            intensity={1}
-            color="#ffffff"
-            distance={1000}
-            decay={0.2}
-            castShadow
-          />
-          {/* Visual helper sphere to show light position */}
-          {/* <mesh
-            position={[
-              ghostBoxPosition.x,
-              ghostBoxPosition.y,
-              ghostBoxPosition.z,
-            ]}
-            scale={0.5}
-          >
-            <sphereGeometry />
-            <meshBasicMaterial color="#ffff00" />
-          </mesh> */}
-        </>
+      {ghostBoxPosition && activeTool === "sphere" && (
+        <mesh position={ghostBoxPosition}>
+          <sphereGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="orange" transparent opacity={0.5} />
+        </mesh>
       )}
     </>
   );
 }
 
-export function Light(props: { object: AbstractSyntaxTree<LightAttributes> }) {
+export function Sphere(props: {
+  object: AbstractSyntaxTree<SphereAttributes>;
+}) {
+  const {
+    setSelectedObjects,
+    selectedObjects,
+    onHoverObjectIn,
+    onHoverObjectOut,
+    hoveredObject,
+  } = useSceneContext();
+  // This reference will give us direct access to the mesh
+  const meshRef = useRef<Mesh>(null);
+  // Set up state for the hovered and active state
+  const isHovered = hoveredObject?.id === props.object.id;
+
+  // Add a ref for the box helper
+  const boxHelperRef = useRef<BoxHelper>(null);
+
+  // Update the box helper position in animation frame
+  useFrame(() => {
+    if (meshRef.current && boxHelperRef.current) {
+      boxHelperRef.current.update();
+    }
+  });
+
   return (
     <>
-      <pointLight
+      <mesh
+        // {...props}
+        ref={meshRef}
+        onClick={(event) => {
+          event.stopPropagation();
+          setSelectedObjects([props.object.id]);
+        }}
+        onPointerOver={(event) => onHoverObjectIn(props.object.id)}
+        onPointerOut={(event) => onHoverObjectOut(props.object.id)}
         position={[
           props.object.attributes.position.x,
           props.object.attributes.position.y,
           props.object.attributes.position.z,
         ]}
-        intensity={props.object.attributes.intensity * 3}
-        color={props.object.attributes.color}
-        distance={props.object.attributes.distance}
-        decay={props.object.attributes.decay}
+        rotation={[
+          props.object.attributes.rotation.x,
+          props.object.attributes.rotation.y,
+          props.object.attributes.rotation.z,
+        ]}
         castShadow
-        shadow-mapSize-width={1024}
-        shadow-mapSize-height={1024}
-        shadow-bias={-0.001}
-      />
-      {/* Visual helper sphere to show light position */}
-      {/* <mesh
-        position={[
-          props.object.attributes.position.x,
-          props.object.attributes.position.y,
-          props.object.attributes.position.z,
-        ]}
-        scale={0.3}
+        receiveShadow
       >
-        <sphereGeometry />
-        <meshBasicMaterial color="#ffff00" />
-      </mesh> */}
+        <sphereGeometry
+          args={[
+            props.object.attributes.scale.x,
+            props.object.attributes.scale.y,
+            props.object.attributes.scale.z,
+          ]}
+        />
+        {props.object.attributes.material && (
+          <meshStandardMaterial
+            color={props.object.attributes.material.color}
+            roughness={props.object.attributes.material.roughness}
+            metalness={props.object.attributes.material.metalness}
+          />
+        )}
+        {!props.object.attributes.material?.color && (
+          <meshStandardMaterial
+            color={"orange"}
+            roughness={0.7}
+            metalness={0.2}
+          />
+        )}
+      </mesh>
+      {/* Conditional box helper */}
+      {(isHovered ||
+        selectedObjects.some((object) => object.id === props.object.id)) &&
+        meshRef.current && (
+          <primitive
+            object={new BoxHelper(meshRef.current!, "#ffffff")}
+            ref={boxHelperRef}
+          >
+            <lineBasicMaterial
+              transparent
+              depthTest={false}
+              color="rgb(37, 137, 255)"
+              linewidth={40}
+            />
+          </primitive>
+        )}
     </>
   );
 }

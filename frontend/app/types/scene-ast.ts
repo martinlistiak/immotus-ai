@@ -35,6 +35,10 @@ export type BaseObjectWithMaterialAttributes = BaseObjectAttributes & {
 
 export type BoxAttributes = BaseObjectWithMaterialAttributes & {};
 
+export type SphereAttributes = BaseObjectWithMaterialAttributes & {
+  // radius: number;
+};
+
 export type MeshAttributes = BaseObjectWithMaterialAttributes & {
   geometry: number[]; // Float32Array
 };
@@ -65,4 +69,4 @@ export type SceneType = {
   objects: AbstractSyntaxTree<ObjectAttributes>[];
 };
 
-export type SceneTool = "box" | "move" | "select" | "light";
+export type SceneTool = "box" | "move" | "select" | "light" | "sphere";

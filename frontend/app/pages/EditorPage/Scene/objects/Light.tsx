@@ -111,18 +111,6 @@ export function LightPlacer({
             decay={0.2}
             castShadow
           />
-          {/* Visual helper sphere to show light position */}
-          {/* <mesh
-            position={[
-              ghostBoxPosition.x,
-              ghostBoxPosition.y,
-              ghostBoxPosition.z,
-            ]}
-            scale={0.5}
-          >
-            <sphereGeometry />
-            <meshBasicMaterial color="#ffff00" />
-          </mesh> */}
         </>
       )}
     </>
@@ -147,18 +135,6 @@ export function Light(props: { object: AbstractSyntaxTree<LightAttributes> }) {
         shadow-mapSize-height={1024}
         shadow-bias={-0.001}
       />
-      {/* Visual helper sphere to show light position */}
-      {/* <mesh
-        position={[
-          props.object.attributes.position.x,
-          props.object.attributes.position.y,
-          props.object.attributes.position.z,
-        ]}
-        scale={0.3}
-      >
-        <sphereGeometry />
-        <meshBasicMaterial color="#ffff00" />
-      </mesh> */}
     </>
   );
 }

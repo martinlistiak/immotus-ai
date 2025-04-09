@@ -8,10 +8,13 @@ import { Box, BoxPlacer } from "./objects/Box";
 import { Light, LightPlacer } from "./objects/Light";
 import type {
   AbstractSyntaxTree,
+  BoxAttributes,
   LightAttributes,
   MeshAttributes,
+  SphereAttributes,
 } from "app/types/scene-ast";
 import { MeshComponent } from "./objects/Mesh";
+import { Sphere } from "./objects/Sphere";
 
 const SceneEnvironment = () => {
   return <Environment preset="studio" background blur={1} />;
@@ -167,7 +170,14 @@ export function Scene({ ...props }) {
           <scene name={scene?.name}>
             {scene?.objects.map((object) => (
               <Fragment key={object.id}>
-                {object.type === "box" && <Box object={object} />}
+                {object.type === "box" && (
+                  <Box object={object as AbstractSyntaxTree<BoxAttributes>} />
+                )}
+                {object.type === "sphere" && (
+                  <Sphere
+                    object={object as AbstractSyntaxTree<SphereAttributes>}
+                  />
+                )}
                 {object.type === "light" && (
                   <Light
                     object={object as AbstractSyntaxTree<LightAttributes>}

@@ -5,6 +5,7 @@ export const tools = [
     name: 'SET_SCENE',
     description: 'Set the scene for the 3d model',
     input_schema: {
+      $schema: 'https://json-schema.org/draft/2020-12/schema',
       type: 'object',
       properties: {
         scene: {
@@ -74,77 +75,55 @@ export const tools = [
                         required: ['color', 'roughness', 'metalness'],
                       },
                     },
-                    required: [
-                      'name',
-                      'description',
-                      'position',
-                      'rotation',
-                      'scale',
-                    ],
                   },
                 },
-                required: ['id', 'type', 'attributes'],
-                allOf: [
+                required: ['id', 'type', 'attributes', 'parentId'],
+                oneOf: [
                   {
-                    if: {
-                      properties: { type: { const: 'mesh' } },
-                      required: ['type'],
-                    },
-                    then: {
-                      properties: {
-                        attributes: {
-                          required: [
-                            'name',
-                            'description',
-                            'position',
-                            'rotation',
-                            'scale',
-                            'geometry',
-                          ],
-                        },
+                    properties: {
+                      type: { const: 'mesh' },
+                      attributes: {
+                        required: [
+                          'name',
+                          'description',
+                          'position',
+                          'rotation',
+                          'scale',
+                          'geometry',
+                        ],
                       },
                     },
                   },
                   {
-                    if: {
-                      properties: { type: { const: 'light' } },
-                      required: ['type'],
-                    },
-                    then: {
-                      properties: {
-                        attributes: {
-                          required: [
-                            'name',
-                            'description',
-                            'position',
-                            'rotation',
-                            'scale',
-                            'color',
-                            'distance',
-                            'decay',
-                            'intensity',
-                          ],
-                        },
+                    properties: {
+                      type: { const: 'light' },
+                      attributes: {
+                        required: [
+                          'name',
+                          'description',
+                          'position',
+                          'rotation',
+                          'scale',
+                          'color',
+                          'distance',
+                          'decay',
+                          'intensity',
+                        ],
                       },
                     },
                   },
                   {
-                    if: {
-                      properties: { type: { pattern: /^(box|sphere)$/ } },
-                      required: ['type'],
-                    },
-                    then: {
-                      properties: {
-                        attributes: {
-                          required: [
-                            'name',
-                            'description',
-                            'position',
-                            'rotation',
-                            'scale',
-                            'material',
-                          ],
-                        },
+                    properties: {
+                      type: { enum: ['box', 'sphere'] },
+                      attributes: {
+                        required: [
+                          'name',
+                          'description',
+                          'position',
+                          'rotation',
+                          'scale',
+                          'material',
+                        ],
                       },
                     },
                   },
@@ -170,6 +149,7 @@ export const tools = [
     description:
       'Gets the current scene. In order to save on token usage, use this tool only when necessary.',
     input_schema: {
+      $schema: 'https://json-schema.org/draft/2020-12/schema',
       type: 'object',
       properties: {
         name: { type: 'string' },
