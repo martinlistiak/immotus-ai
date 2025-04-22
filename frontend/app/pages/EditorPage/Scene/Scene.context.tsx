@@ -22,7 +22,7 @@ import {
 
 export const SceneContext = createContext({
   scene: null as SceneType | null,
-  scenes: [] as SceneType[],
+  scenes: [] as { name: string; scene: SceneType }[],
   selectedObjects: [] as AbstractSyntaxTree<ObjectAttributes>[],
   setSelectedObjects: (objectIds: string[]) => {},
   onHoverObjectIn: (objectId: string) => {},
@@ -40,6 +40,8 @@ export const SceneContext = createContext({
   redo: () => {},
   history: [] as SceneType[],
   historyIndex: 0,
+  isSceneSelectionOpen: false,
+  setIsSceneSelectionOpen: (_isOpen: boolean) => {},
 });
 
 export const SceneContextProvider = ({
@@ -55,6 +57,7 @@ export const SceneContextProvider = ({
   const [editingObjectName, setEditingObjectName] = useState<string | null>(
     null
   );
+  const [isSceneSelectionOpen, setIsSceneSelectionOpen] = useState(false);
   const [scene, dispatchUnwrapped] = useSceneReducer();
   const [activeTool, setActiveTool] = useState<SceneTool>("move");
   const [isLoading, setIsLoading] = useState(true);
@@ -64,7 +67,9 @@ export const SceneContextProvider = ({
     "lastSceneUsed",
     ""
   );
-  const [scenes, setScenes] = useState<SceneType[]>([]);
+  const [scenes, setScenes] = useState<{ name: string; scene: SceneType }[]>(
+    []
+  );
 
   const sceneRef = useRef<SceneType | null>(null);
   sceneRef.current = scene;
@@ -250,6 +255,8 @@ export const SceneContextProvider = ({
         history,
         historyIndex,
         scenes,
+        isSceneSelectionOpen,
+        setIsSceneSelectionOpen,
       }}
     >
       {isLoading && (

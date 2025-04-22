@@ -508,7 +508,9 @@ export const sceneReducer = (state: SceneType, action: Action) => {
           (object) => object.id === action.payload.objectId
         );
         if (object) {
-          draft.objects.push({
+          // splice the object at the index of the object
+          // duplicate also the children recursively
+          draft.objects.splice(draft.objects.indexOf(object), 0, {
             ...object,
             id: v4(),
             attributes: {
