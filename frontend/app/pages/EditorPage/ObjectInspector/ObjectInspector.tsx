@@ -26,24 +26,20 @@ const transformObjectsToTreeNodesRecursive = (
   })) as TreeNodeType[];
 };
 export const ObjectInspector = () => {
-  const [viewing, setViewing] = useState<"scenes" | "objects">("scenes");
-  const { scene } = useSceneContext();
+  const { scene, isSceneSelectionOpen, setIsSceneSelectionOpen } =
+    useSceneContext();
 
   const nodes = useMemo(
     () => transformObjectsToTreeNodesRecursive(scene?.objects ?? [], null),
     [scene?.objects]
   );
 
-  console.log(nodes, scene?.objects);
-
   return (
-    <Card className="fixed top-4 !p-0 left-4 bottom-4 w-[230px] h-[calc(100vh-2rem)]">
+    <Card className="fixed top-4 !p-0 left-4 bottom-4 w-[230px] h-[calc(100vh-2rem)] flex flex-col">
       <div className="flex items-center gap-3 p-4 border-b border-gray-800 mb-4">
         <div
           onClick={() => {
-            setViewing(viewing === "scenes" ? "objects" : "scenes");
-            if (viewing === "scenes") {
-            }
+            setIsSceneSelectionOpen(!isSceneSelectionOpen);
           }}
           className="text-sm text-gray-400 cursor-pointer hover:text-gray-200"
         >
@@ -51,7 +47,7 @@ export const ObjectInspector = () => {
         </div>
         <h1 className="text-[10px]">{scene?.name}</h1>
       </div>
-      <div>
+      <div className="flex-1 h-full overflow-y-auto">
         <ObjectTree nodes={nodes} level={0} />
       </div>
     </Card>

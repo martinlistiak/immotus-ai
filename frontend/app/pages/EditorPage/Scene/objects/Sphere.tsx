@@ -1,10 +1,5 @@
 import { BoxHelper } from "three";
-import type {
-  AbstractSyntaxTree,
-  BoxAttributes,
-  ObjectAttributes,
-  SphereAttributes,
-} from "app/types/scene-ast";
+import type { AbstractSyntaxTree, SphereAttributes } from "app/types/scene-ast";
 import { useSceneContext } from "../Scene.context";
 import { useRef } from "react";
 import type { Mesh, Vector3 } from "three";
@@ -105,7 +100,7 @@ export function SpherePlacer({
       {/* Ghost box preview */}
       {ghostBoxPosition && activeTool === "sphere" && (
         <mesh position={ghostBoxPosition}>
-          <sphereGeometry args={[1, 1, 1]} />
+          <sphereGeometry args={[1, 64, 32]} />
           <meshStandardMaterial color="orange" transparent opacity={0.5} />
         </mesh>
       )}
@@ -164,9 +159,13 @@ export function Sphere(props: {
       >
         <sphereGeometry
           args={[
-            props.object.attributes.scale.x,
-            props.object.attributes.scale.y,
-            props.object.attributes.scale.z,
+            props.object.attributes.radius,
+            props.object.attributes.widthSegments,
+            props.object.attributes.heightSegments,
+            props.object.attributes.phiStart,
+            props.object.attributes.phiLength,
+            props.object.attributes.thetaStart,
+            props.object.attributes.thetaLength,
           ]}
         />
         {props.object.attributes.material && (

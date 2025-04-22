@@ -1,5 +1,13 @@
 import { getConversations } from "app/api/conversation";
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import { useSceneContext } from "app/pages/EditorPage/Scene/Scene.context";
 export type Conversation = {
   id: string;
@@ -28,7 +36,9 @@ export const ConversationContext = createContext({
   isProcessing: false as boolean,
   messages: [] as Message[],
   expandedToolPayloadIndex: null as number | null,
-  setExpandedToolPayloadIndex: (_index: number | null) => {},
+  setExpandedToolPayloadIndex: ((_index: number | null) => {}) as Dispatch<
+    SetStateAction<number | null>
+  >,
   toggleRecording: () => {},
   submitMessage: (_text: string) => {},
 });
@@ -38,7 +48,7 @@ export const ConversationContextProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const { selectedObjects } = useSceneContext();
+  const { selectedObjects, scene } = useSceneContext();
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isRecording, setIsRecording] = useState(false);
@@ -180,28 +190,39 @@ export const ConversationContextProvider = ({
     const eventSource = new EventSource(
       `http://localhost:3001/stream-response?prompt=${encodeURIComponent(
         text
-      )}&language=${language}&conversationName=${"default"}`
+      )}&language=${language}&conversationName=${"default"}&sceneName=${
+        scene?.name
+      }`
     );
     eventSourceRef.current = eventSource;
 
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === "tool_use") {
-        dispatchScene({
-          type: "SET_SCENE",
-          payload: {
-            scene: data.content,
-          },
-        });
-        // Add tool message to history
-        setMessages((prev) => [
-          ...prev,
-          {
-            text: JSON.stringify(data.content, null, 2),
-            type: "tool",
-            toolName: "SET_SCENE",
-          },
-        ]);
+        if (data.content.type === "SET_SCENE") {
+          dispatchScene({
+            type: "SET_SCENE",
+            payload: {
+              scene: data.content.scene,
+            },
+          });
+          // Add tool message to history
+          setMessages((prev) => [
+            ...prev,
+            {
+              text: JSON.stringify(data.content, null, 2),
+              type: "tool",
+              toolName: "SET_SCENE",
+            },
+          ]);
+        } else if (data.content.type === "GET_SCENE") {
+          dispatchScene({
+            type: "SET_SCENE",
+            payload: {
+              scene: data.content.scene,
+            },
+          });
+        }
       } else if (data.type === "text") {
         // Update the current assistant message
         currentAssistantMessage += data.content;

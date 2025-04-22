@@ -11,11 +11,14 @@ export const Conversation = () => {
       <div className="space-y-2 max-h-[60vh] overflow-y-auto">
         {messages.length !== 0 && (
           <div className="flex flex-col gap-2">
+            {!messages.length && (
+              <div className="text-gray-400 text-center">No messages yet</div>
+            )}
             {messages.map((message, index) => (
               <Card
                 key={index}
                 className={cn({
-                  "rounded-lg shadow-lg p-3 break-words text-[12px] leading-[1.125] w-[90%]":
+                  "rounded-lg shadow-lg p-3 break-words text-[12px] leading-[1.125] w-[90%] [user-select:text]":
                     true,
                   "ml-auto bg-active-hover max-w-[90%] text-white":
                     message.type === "user",

@@ -4,7 +4,7 @@ import { Anthropic } from '@anthropic-ai/sdk';
 
 type ConversationType = Anthropic.Messages.MessageParam[];
 
-const conversationsFilePath = path.join(__dirname, './conversations');
+const conversationsFilePath = path.join(__dirname, '../../../conversations');
 
 const makeSureDirectoryExists = () => {
   if (!fs.existsSync(conversationsFilePath)) {

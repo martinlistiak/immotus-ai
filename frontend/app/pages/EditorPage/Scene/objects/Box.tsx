@@ -1,10 +1,9 @@
 import { BoxHelper } from "three";
-
 import type { BoxAttributes } from "app/types/scene-ast";
 
 import type { AbstractSyntaxTree } from "app/types/scene-ast";
 import { useSceneContext } from "../Scene.context";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import type { Mesh, Vector3 } from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 
@@ -179,6 +178,21 @@ export function Box(props: { object: AbstractSyntaxTree<BoxAttributes> }) {
             metalness={0.2}
           />
         )}
+        {/* <Edges
+          visible={
+            isHovered ||
+            selectedObjects.some((object) => object.id === props.object.id)
+          }
+          scale={1}
+          renderOrder={1000}
+          lineWidth={2}
+        >
+          <meshBasicMaterial
+            transparent
+            color="rgb(37, 137, 255)"
+            depthTest={false}
+          />
+        </Edges> */}
       </mesh>
       {/* Conditional box helper */}
       {(isHovered ||

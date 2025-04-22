@@ -877,6 +877,7 @@ __metadata:
     "@react-router/dev": "npm:^7.4.0"
     "@react-router/node": "npm:^7.4.0"
     "@react-router/serve": "npm:^7.4.0"
+    "@react-three/csg": "npm:^4.0.0"
     "@react-three/drei": "npm:^10.0.5"
     "@react-three/fiber": "npm:^9.1.0"
     "@tailwindcss/vite": "npm:^4.0.0"
@@ -1655,6 +1656,16 @@ __metadata:
   bin:
     react-router-serve: bin.js
   checksum: 10c0/fbb82d50f1308361bbeee4d436e3bc76757884fc9d33769d6cf6e3394c79179b1c0fc3c471f1b958546bbdddd96c2e18ad075cb2a23ec2b290dbac6b54ad6a89
+  languageName: node
+  linkType: hard
+
+"@react-three/csg@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "@react-three/csg@npm:4.0.0"
+  dependencies:
+    three-bvh-csg: "npm:^0.0.16"
+    three-mesh-bvh: "npm:^0.6.8"
+  checksum: 10c0/387fa023cbcb55445ef132a33463d30e09657548315e118a3f328323228aed35faef86ee2c3f87c3f52ec42516a7a44a327dfc254b653071375b4fd5bd282651
   languageName: node
   linkType: hard
 
@@ -5674,6 +5685,25 @@ __metadata:
     mkdirp: "npm:^3.0.1"
     yallist: "npm:^5.0.0"
   checksum: 10c0/d4679609bb2a9b48eeaf84632b6d844128d2412b95b6de07d53d8ee8baf4ca0857c9331dfa510390a0727b550fd543d4d1a10995ad86cdf078423fbb8d99831d
+  languageName: node
+  linkType: hard
+
+"three-bvh-csg@npm:^0.0.16":
+  version: 0.0.16
+  resolution: "three-bvh-csg@npm:0.0.16"
+  peerDependencies:
+    three: ">=0.151.0"
+    three-mesh-bvh: ">=0.6.6"
+  checksum: 10c0/b3224d00f7be74def79628e7c6269297d703ad57d56f487a83bb6d7c7fc383d858688c6868b0bc5a701b36856b759e88ec9ad7d96213e08454533a839e8e26d8
+  languageName: node
+  linkType: hard
+
+"three-mesh-bvh@npm:^0.6.8":
+  version: 0.6.8
+  resolution: "three-mesh-bvh@npm:0.6.8"
+  peerDependencies:
+    three: ">= 0.151.0"
+  checksum: 10c0/19f6ce7371da613669984d24328b6e224e3055e6acc3dae9c419c51be79d90a9431fde2c00c96214ab215e30aca30ae14fb9f3b9aedd31bb910c80776c032a60
   languageName: node
   linkType: hard
 

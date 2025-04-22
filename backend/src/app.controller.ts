@@ -30,13 +30,34 @@ export class AppController {
     @Query('prompt') prompt: string,
     @Query('language') language: string,
     @Query('conversationName') conversationName: string,
+    @Query('sceneName') sceneName: string,
     @Res() res: Response,
   ) {
-    return this.appService.streamResponse(
-      prompt,
-      language,
-      conversationName,
-      res,
-    );
+    try {
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+
+      await this.appService.streamResponse(
+        prompt,
+        language,
+        conversationName,
+        sceneName,
+        res,
+      );
+
+      // Send the completion event
+      res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
+      res.end();
+    } catch (error) {
+      console.error('Error in streaming response:', error);
+      // Type assertion for error message
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      res.write(
+        `data: ${JSON.stringify({ type: 'error', message: errorMessage })}\n\n`,
+      );
+      res.end();
+    }
   }
 }

@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { SceneType } from 'src/types/scene-ast';
 
-const scenesFilePath = path.join(__dirname, './scenes');
+const scenesFilePath = path.join(__dirname, '../../../scenes');
 
 export class SceneRepository {
   findAll(): { name: string; scene: SceneType }[] {

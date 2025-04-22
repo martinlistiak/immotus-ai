@@ -1,19 +1,12 @@
 import { useSceneContext } from "../../Scene/Scene.context";
 import cn from "classnames";
 import type { ObjectType } from "app/types/scene-ast";
-import {
-  IoCaretDown,
-  IoCubeOutline,
-  IoEllipseOutline,
-  IoSunnyOutline,
-} from "react-icons/io5";
-import { RiShapesLine } from "react-icons/ri";
-
+import { IoCaretDown } from "react-icons/io5";
 import { useState } from "react";
 import { Card } from "app/components/Card";
-
+import { NodeIcon } from "app/components/NodeIcon";
 const RightClickMenu = ({ onClose }: { onClose: () => void }) => {
-  const { removeObject, dispatchScene, selectedObjects } = useSceneContext();
+  const { removeObjects, dispatchScene, selectedObjects } = useSceneContext();
 
   const handleDuplicate = () => {
     for (const object of selectedObjects) {
@@ -34,7 +27,7 @@ const RightClickMenu = ({ onClose }: { onClose: () => void }) => {
   };
 
   return (
-    <Card className="absolute right-0 top-full w-[160px] h-fit !bg-gray-900 !rounded-sm z-10 !text-xs text-gray-400 !p-2">
+    <Card className="absolute right-0 top-[26px] w-[160px] h-fit !bg-gray-900 !rounded-sm z-10 !text-xs text-gray-400 !p-2">
       <div className="flex flex-col">
         <div
           onClick={() => {
@@ -55,9 +48,7 @@ const RightClickMenu = ({ onClose }: { onClose: () => void }) => {
         </div>
         <div
           onClick={() => {
-            for (const object of selectedObjects) {
-              removeObject(object.id);
-            }
+            removeObjects(selectedObjects.map((o) => o.id));
             onClose();
           }}
           className="cursor-pointer hover:bg-active hover:text-white rounded-md p-[10px] py-1"
@@ -76,18 +67,6 @@ export type TreeNodeType = {
   type: ObjectType;
 };
 
-const NodeIcon = ({ type }: { type: ObjectType }) => {
-  switch (type) {
-    case "box":
-      return <IoCubeOutline className="w-[18px] h-[18px]" />;
-    case "sphere":
-      return <IoEllipseOutline className="w-[18px] h-[18px]" />;
-    case "mesh":
-      return <RiShapesLine className="w-[18px] h-[18px]" />;
-    case "light":
-      return <IoSunnyOutline className="w-[18px] h-[20px]" />;
-  }
-};
 const VerticalLine = ({ isLastChild }: { isLastChild: boolean }) => {
   return (
     <div
@@ -128,7 +107,6 @@ const TreeNode = ({
   } = useSceneContext();
 
   const [isGroupOpen, setIsGroupOpen] = useState(true);
-  console.log(nodes);
 
   const isHovered = hoveredObject?.id === node.id;
   const isSelected = selectedObjects.some((object) => object.id === node.id);
@@ -241,6 +219,9 @@ const TreeNode = ({
           <IoCaretDown className="w-[12px] h-[12px]" />
         </div>
       )}
+      {isRightClickMenuOpen && (
+        <RightClickMenu onClose={() => setIsRightClickMenuOpen(false)} />
+      )}
       <div
         className={cn({
           "relative left-[14px] w-[calc(100%-14px)]": true,
@@ -257,9 +238,6 @@ const TreeNode = ({
           />
         ))}
       </div>
-      {isRightClickMenuOpen && (
-        <RightClickMenu onClose={() => setIsRightClickMenuOpen(false)} />
-      )}
       {node.type !== "group" && <VerticalLine isLastChild={isLastChild} />}
     </div>
   );

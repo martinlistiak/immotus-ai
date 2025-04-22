@@ -6,5 +6,6 @@ import { SceneRepository } from './scene.repository';
   imports: [],
   controllers: [SceneController],
   providers: [SceneService, SceneRepository],
+  exports: [SceneService],
 })
 export class SceneModule {}

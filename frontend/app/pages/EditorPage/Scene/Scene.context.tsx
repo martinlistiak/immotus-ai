@@ -34,7 +34,7 @@ export const SceneContext = createContext({
   setActiveTool: ((tool: SceneTool) => {}) as React.Dispatch<
     React.SetStateAction<SceneTool>
   >,
-  removeObject: (_objectId: string) => {},
+  removeObjects: (_objectIds: string[]) => {},
   dispatchScene: (_action: Action) => {},
   undo: () => {},
   redo: () => {},
@@ -177,20 +177,25 @@ export const SceneContextProvider = ({
     handleSetSelectedObjects,
   ]);
 
+  const removeObjects = useCallback(
+    (objectIds: string[]) => {
+      if (selectedObjects.some((object) => objectIds.includes(object.id))) {
+        setSelectedObjects(
+          selectedObjects.filter((object) => !objectIds.includes(object.id))
+        );
+      }
+      dispatch({ type: "REMOVE_OBJECTS", payload: { objectIds } });
+    },
+    [dispatch, selectedObjects]
+  );
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Backspace") {
         if (e.target instanceof HTMLInputElement) {
           return;
         }
-        if (selectedObjects.length > 0) {
-          for (const object of selectedObjects) {
-            dispatch({
-              type: "REMOVE_OBJECT",
-              payload: { objectId: object.id },
-            });
-          }
-        }
+        removeObjects(selectedObjects.map((object) => object.id));
       } else if (e.key === "z" && (e.ctrlKey || e.metaKey) && e.shiftKey) {
         redo();
       } else if (e.key === "z" && (e.ctrlKey || e.metaKey)) {
@@ -203,7 +208,7 @@ export const SceneContextProvider = ({
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [scene, selectedObjects, undo, redo]);
+  }, [scene, removeObjects, undo, redo]);
 
   useEffect(() => {
     if (scene && !isLoading) {
@@ -225,15 +230,6 @@ export const SceneContextProvider = ({
     }
   };
 
-  const removeObject = (objectId: string) => {
-    if (selectedObjects.some((object) => object.id === objectId)) {
-      setSelectedObjects(
-        selectedObjects.filter((object) => object.id !== objectId)
-      );
-    }
-    dispatch({ type: "REMOVE_OBJECT", payload: { objectId } });
-  };
-
   return (
     <SceneContext.Provider
       value={{
@@ -248,7 +244,7 @@ export const SceneContextProvider = ({
         setEditingObjectName,
         activeTool,
         setActiveTool,
-        removeObject,
+        removeObjects,
         undo,
         redo,
         history,

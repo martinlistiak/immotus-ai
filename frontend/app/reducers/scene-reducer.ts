@@ -76,10 +76,10 @@ type SetSceneAction = {
   };
 };
 
-type RemoveObjectAction = {
-  type: "REMOVE_OBJECT";
+type RemoveObjectsAction = {
+  type: "REMOVE_OBJECTS";
   payload: {
-    objectId: string;
+    objectIds: string[];
   };
 };
 
@@ -129,6 +129,164 @@ type ChangeObjectColorAction = {
   };
 };
 
+type ChangePlanePropertyAction = {
+  type: "CHANGE_PLANE_PROPERTY";
+  payload: {
+    objectId: string;
+    property: "width" | "height" | "widthSegments" | "heightSegments";
+    value: number;
+  };
+};
+
+type ChangeSpherePropertyAction = {
+  type: "CHANGE_SPHERE_PROPERTY";
+  payload: {
+    objectId: string;
+    property:
+      | "radius"
+      | "widthSegments"
+      | "heightSegments"
+      | "phiStart"
+      | "phiLength"
+      | "thetaStart"
+      | "thetaLength";
+    value: number;
+  };
+};
+
+type ChangeCylinderPropertyAction = {
+  type: "CHANGE_CYLINDER_PROPERTY";
+  payload: {
+    objectId: string;
+    property:
+      | "radiusTop"
+      | "radiusBottom"
+      | "height"
+      | "radialSegments"
+      | "heightSegments"
+      | "openEnded"
+      | "thetaStart"
+      | "thetaLength";
+    value: number | boolean;
+  };
+};
+
+type ChangeConePropertyAction = {
+  type: "CHANGE_CONE_PROPERTY";
+  payload: {
+    objectId: string;
+    property:
+      | "radius"
+      | "height"
+      | "radialSegments"
+      | "heightSegments"
+      | "openEnded"
+      | "thetaStart"
+      | "thetaLength";
+    value: number | boolean;
+  };
+};
+
+type ChangeTorusPropertyAction = {
+  type: "CHANGE_TORUS_PROPERTY";
+  payload: {
+    objectId: string;
+    property: "radius" | "tube" | "radialSegments" | "tubularSegments" | "arc";
+    value: number;
+  };
+};
+
+type ChangeCirclePropertyAction = {
+  type: "CHANGE_CIRCLE_PROPERTY";
+  payload: {
+    objectId: string;
+    property: "radius" | "segments" | "thetaStart" | "thetaLength";
+    value: number;
+  };
+};
+
+type ChangeRingPropertyAction = {
+  type: "CHANGE_RING_PROPERTY";
+  payload: {
+    objectId: string;
+    property:
+      | "innerRadius"
+      | "outerRadius"
+      | "thetaSegments"
+      | "phiSegments"
+      | "thetaStart"
+      | "thetaLength";
+    value: number;
+  };
+};
+
+type ChangeDodecahedronPropertyAction = {
+  type: "CHANGE_DODECAHEDRON_PROPERTY";
+  payload: {
+    objectId: string;
+    property: "radius" | "detail";
+    value: number;
+  };
+};
+
+type ChangeIcosahedronPropertyAction = {
+  type: "CHANGE_ICOSAHEDRON_PROPERTY";
+  payload: {
+    objectId: string;
+    property: "radius" | "detail";
+    value: number;
+  };
+};
+
+type ChangeOctahedronPropertyAction = {
+  type: "CHANGE_OCTAHEDRON_PROPERTY";
+  payload: {
+    objectId: string;
+    property: "radius" | "detail";
+    value: number;
+  };
+};
+
+type ChangeTetrahedronPropertyAction = {
+  type: "CHANGE_TETRAHEDRON_PROPERTY";
+  payload: {
+    objectId: string;
+    property: "radius" | "detail";
+    value: number;
+  };
+};
+
+type ChangeTorusKnotPropertyAction = {
+  type: "CHANGE_TORUSKNOT_PROPERTY";
+  payload: {
+    objectId: string;
+    property:
+      | "radius"
+      | "tube"
+      | "tubularSegments"
+      | "radialSegments"
+      | "p"
+      | "q";
+    value: number;
+  };
+};
+
+type ChangeTextPropertyAction = {
+  type: "CHANGE_TEXT_PROPERTY";
+  payload: {
+    objectId: string;
+    property:
+      | "text"
+      | "size"
+      | "height"
+      | "curveSegments"
+      | "bevelThickness"
+      | "bevelSize"
+      | "bevelSegments";
+    value: number | string | boolean;
+  };
+};
+
 export type Action =
   | (
       | ChangeObjectPositionAction
@@ -140,13 +298,26 @@ export type Action =
       | ChangeLightDecayAction
       | AddObjectAction
       | SetSceneAction
-      | RemoveObjectAction
+      | RemoveObjectsAction
       | RenameObjectAction
       | DuplicateObjectAction
       | GroupObjectsAction
       | ChangeObjectMetalnessAction
       | ChangeObjectRoughnessAction
       | ChangeObjectColorAction
+      | ChangePlanePropertyAction
+      | ChangeSpherePropertyAction
+      | ChangeCylinderPropertyAction
+      | ChangeConePropertyAction
+      | ChangeTorusPropertyAction
+      | ChangeCirclePropertyAction
+      | ChangeRingPropertyAction
+      | ChangeDodecahedronPropertyAction
+      | ChangeIcosahedronPropertyAction
+      | ChangeOctahedronPropertyAction
+      | ChangeTetrahedronPropertyAction
+      | ChangeTorusKnotPropertyAction
+      | ChangeTextPropertyAction
     ) & { skipHistory?: boolean };
 
 export const initialScene: SceneType = {
@@ -291,10 +462,35 @@ export const sceneReducer = (state: SceneType, action: Action) => {
           object.attributes.decay = action.payload.decay;
         }
       });
-    case "REMOVE_OBJECT":
+    case "REMOVE_OBJECTS":
       return produce(state, (draft) => {
+        // Helper function to get all descendant IDs of an object
+        const getDescendantIds = (objectId: string): string[] => {
+          const children = draft.objects.filter(
+            (obj) => obj.parentId === objectId
+          );
+          return [
+            objectId,
+            ...children.flatMap((child) => getDescendantIds(child.id)),
+          ];
+        };
+
+        // Get all objects to remove including their descendants
+        const allObjectsToRemove = action.payload.objectIds.flatMap((id) =>
+          getDescendantIds(id)
+        );
+
+        // Set parentId to null for all objects being removed
+        const objectsToRemove = draft.objects.filter((object) =>
+          allObjectsToRemove.includes(object.id)
+        );
+        for (const object of objectsToRemove) {
+          object.parentId = null;
+        }
+
+        // Remove all objects including their descendants
         draft.objects = draft.objects.filter(
-          (object) => object.id !== action.payload.objectId
+          (object) => !allObjectsToRemove.includes(object.id)
         );
       });
     case "RENAME_OBJECT":
@@ -369,6 +565,136 @@ export const sceneReducer = (state: SceneType, action: Action) => {
         );
         if (object && "material" in object.attributes) {
           object.attributes.material.color = action.payload.color;
+        }
+      });
+    case "CHANGE_PLANE_PROPERTY":
+      return produce(state, (draft) => {
+        const object = draft.objects.find(
+          (object) => object.id === action.payload.objectId
+        );
+        if (object && object.type === "plane") {
+          (object.attributes as any)[action.payload.property] =
+            action.payload.value;
+        }
+      });
+    case "CHANGE_SPHERE_PROPERTY":
+      return produce(state, (draft) => {
+        const object = draft.objects.find(
+          (object) => object.id === action.payload.objectId
+        );
+        if (object && object.type === "sphere") {
+          (object.attributes as any)[action.payload.property] =
+            action.payload.value;
+        }
+      });
+    case "CHANGE_CYLINDER_PROPERTY":
+      return produce(state, (draft) => {
+        const object = draft.objects.find(
+          (object) => object.id === action.payload.objectId
+        );
+        if (object && object.type === "cylinder") {
+          (object.attributes as any)[action.payload.property] =
+            action.payload.value;
+        }
+      });
+    case "CHANGE_CONE_PROPERTY":
+      return produce(state, (draft) => {
+        const object = draft.objects.find(
+          (object) => object.id === action.payload.objectId
+        );
+        if (object && object.type === "cone") {
+          (object.attributes as any)[action.payload.property] =
+            action.payload.value;
+        }
+      });
+    case "CHANGE_TORUS_PROPERTY":
+      return produce(state, (draft) => {
+        const object = draft.objects.find(
+          (object) => object.id === action.payload.objectId
+        );
+        if (object && object.type === "torus") {
+          (object.attributes as any)[action.payload.property] =
+            action.payload.value;
+        }
+      });
+    case "CHANGE_CIRCLE_PROPERTY":
+      return produce(state, (draft) => {
+        const object = draft.objects.find(
+          (object) => object.id === action.payload.objectId
+        );
+        if (object && object.type === "circle") {
+          (object.attributes as any)[action.payload.property] =
+            action.payload.value;
+        }
+      });
+    case "CHANGE_RING_PROPERTY":
+      return produce(state, (draft) => {
+        const object = draft.objects.find(
+          (object) => object.id === action.payload.objectId
+        );
+        if (object && object.type === "ring") {
+          (object.attributes as any)[action.payload.property] =
+            action.payload.value;
+        }
+      });
+    case "CHANGE_DODECAHEDRON_PROPERTY":
+      return produce(state, (draft) => {
+        const object = draft.objects.find(
+          (object) => object.id === action.payload.objectId
+        );
+        if (object && object.type === "dodecahedron") {
+          (object.attributes as any)[action.payload.property] =
+            action.payload.value;
+        }
+      });
+    case "CHANGE_ICOSAHEDRON_PROPERTY":
+      return produce(state, (draft) => {
+        const object = draft.objects.find(
+          (object) => object.id === action.payload.objectId
+        );
+        if (object && object.type === "icosahedron") {
+          (object.attributes as any)[action.payload.property] =
+            action.payload.value;
+        }
+      });
+    case "CHANGE_OCTAHEDRON_PROPERTY":
+      return produce(state, (draft) => {
+        const object = draft.objects.find(
+          (object) => object.id === action.payload.objectId
+        );
+        if (object && object.type === "octahedron") {
+          (object.attributes as any)[action.payload.property] =
+            action.payload.value;
+        }
+      });
+    case "CHANGE_TETRAHEDRON_PROPERTY":
+      return produce(state, (draft) => {
+        const object = draft.objects.find(
+          (object) => object.id === action.payload.objectId
+        );
+        if (object && object.type === "tetrahedron") {
+          (object.attributes as any)[action.payload.property] =
+            action.payload.value;
+        }
+      });
+    case "CHANGE_TORUSKNOT_PROPERTY":
+      return produce(state, (draft) => {
+        const object = draft.objects.find(
+          (object) => object.id === action.payload.objectId
+        );
+        if (object && object.type === "torusknot") {
+          (object.attributes as any)[action.payload.property] =
+            action.payload.value;
+        }
+      });
+    case "CHANGE_TEXT_PROPERTY":
+      return produce(state, (draft) => {
+        const object = draft.objects.find(
+          (object) => object.id === action.payload.objectId
+        );
+        if (object && object.type === "text") {
+          (object.attributes as any)[action.payload.property] =
+            action.payload.value;
         }
       });
     default:

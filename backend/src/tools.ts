@@ -5,7 +5,6 @@ export const tools = [
     name: 'SET_SCENE',
     description: 'Set the scene for the 3d model',
     input_schema: {
-      $schema: 'https://json-schema.org/draft/2020-12/schema',
       type: 'object',
       properties: {
         scene: {
@@ -25,7 +24,25 @@ export const tools = [
                   id: { type: 'string' },
                   type: {
                     type: 'string',
-                    enum: ['box', 'light', 'mesh', 'sphere'],
+                    enum: [
+                      'box',
+                      'light',
+                      'mesh',
+                      'sphere',
+                      'plane',
+                      'cylinder',
+                      'cone',
+                      'torus',
+                      'circle',
+                      'ring',
+                      'dodecahedron',
+                      'icosahedron',
+                      'octahedron',
+                      'tetrahedron',
+                      'torusknot',
+                      'text',
+                      'group',
+                    ],
                   },
                   parentId: { type: ['string', 'null'] },
                   attributes: {
@@ -74,6 +91,54 @@ export const tools = [
                         },
                         required: ['color', 'roughness', 'metalness'],
                       },
+                      // Common primitive properties
+                      radius: { type: 'number' },
+                      width: { type: 'number' },
+                      height: { type: 'number' },
+                      widthSegments: { type: 'number' },
+                      heightSegments: { type: 'number' },
+
+                      // Sphere properties
+                      phiStart: { type: 'number' },
+                      phiLength: { type: 'number' },
+                      thetaStart: { type: 'number' },
+                      thetaLength: { type: 'number' },
+
+                      // Cylinder properties
+                      radiusTop: { type: 'number' },
+                      radiusBottom: { type: 'number' },
+                      radialSegments: { type: 'number' },
+                      openEnded: { type: 'boolean' },
+
+                      // Torus properties
+                      tube: { type: 'number' },
+                      tubularSegments: { type: 'number' },
+                      arc: { type: 'number' },
+
+                      // Circle properties
+                      segments: { type: 'number' },
+
+                      // Ring properties
+                      innerRadius: { type: 'number' },
+                      outerRadius: { type: 'number' },
+                      thetaSegments: { type: 'number' },
+                      phiSegments: { type: 'number' },
+
+                      // Polyhedron properties
+                      detail: { type: 'number' },
+
+                      // TorusKnot properties
+                      p: { type: 'number' },
+                      q: { type: 'number' },
+
+                      // Text properties
+                      text: { type: 'string' },
+                      size: { type: 'number' },
+                      curveSegments: { type: 'number' },
+                      bevelEnabled: { type: 'boolean' },
+                      bevelThickness: { type: 'number' },
+                      bevelSize: { type: 'number' },
+                      bevelSegments: { type: 'number' },
                     },
                   },
                 },
@@ -114,7 +179,7 @@ export const tools = [
                   },
                   {
                     properties: {
-                      type: { enum: ['box', 'sphere'] },
+                      type: { const: 'box' },
                       attributes: {
                         required: [
                           'name',
@@ -123,6 +188,324 @@ export const tools = [
                           'rotation',
                           'scale',
                           'material',
+                        ],
+                      },
+                    },
+                  },
+                  {
+                    properties: {
+                      type: { const: 'sphere' },
+                      attributes: {
+                        properties: {
+                          radius: { type: 'number' },
+                          widthSegments: { type: 'number' },
+                          heightSegments: { type: 'number' },
+                          phiStart: { type: 'number' },
+                          phiLength: { type: 'number' },
+                          thetaStart: { type: 'number' },
+                          thetaLength: { type: 'number' },
+                        },
+                        required: [
+                          'name',
+                          'description',
+                          'position',
+                          'rotation',
+                          'scale',
+                          'material',
+                          'radius',
+                        ],
+                      },
+                    },
+                  },
+                  {
+                    properties: {
+                      type: { const: 'plane' },
+                      attributes: {
+                        properties: {
+                          width: { type: 'number' },
+                          height: { type: 'number' },
+                          widthSegments: { type: 'number' },
+                          heightSegments: { type: 'number' },
+                        },
+                        required: [
+                          'name',
+                          'description',
+                          'position',
+                          'rotation',
+                          'scale',
+                          'material',
+                          'width',
+                          'height',
+                        ],
+                      },
+                    },
+                  },
+                  {
+                    properties: {
+                      type: { const: 'cylinder' },
+                      attributes: {
+                        properties: {
+                          radiusTop: { type: 'number' },
+                          radiusBottom: { type: 'number' },
+                          height: { type: 'number' },
+                          radialSegments: { type: 'number' },
+                          heightSegments: { type: 'number' },
+                          openEnded: { type: 'boolean' },
+                          thetaStart: { type: 'number' },
+                          thetaLength: { type: 'number' },
+                        },
+                        required: [
+                          'name',
+                          'description',
+                          'position',
+                          'rotation',
+                          'scale',
+                          'material',
+                          'radiusTop',
+                          'radiusBottom',
+                          'height',
+                        ],
+                      },
+                    },
+                  },
+                  {
+                    properties: {
+                      type: { const: 'cone' },
+                      attributes: {
+                        properties: {
+                          radius: { type: 'number' },
+                          height: { type: 'number' },
+                          radialSegments: { type: 'number' },
+                          heightSegments: { type: 'number' },
+                          openEnded: { type: 'boolean' },
+                          thetaStart: { type: 'number' },
+                          thetaLength: { type: 'number' },
+                        },
+                        required: [
+                          'name',
+                          'description',
+                          'position',
+                          'rotation',
+                          'scale',
+                          'material',
+                          'radius',
+                          'height',
+                        ],
+                      },
+                    },
+                  },
+                  {
+                    properties: {
+                      type: { const: 'torus' },
+                      attributes: {
+                        properties: {
+                          radius: { type: 'number' },
+                          tube: { type: 'number' },
+                          radialSegments: { type: 'number' },
+                          tubularSegments: { type: 'number' },
+                          arc: { type: 'number' },
+                        },
+                        required: [
+                          'name',
+                          'description',
+                          'position',
+                          'rotation',
+                          'scale',
+                          'material',
+                          'radius',
+                          'tube',
+                        ],
+                      },
+                    },
+                  },
+                  {
+                    properties: {
+                      type: { const: 'circle' },
+                      attributes: {
+                        properties: {
+                          radius: { type: 'number' },
+                          segments: { type: 'number' },
+                          thetaStart: { type: 'number' },
+                          thetaLength: { type: 'number' },
+                        },
+                        required: [
+                          'name',
+                          'description',
+                          'position',
+                          'rotation',
+                          'scale',
+                          'material',
+                          'radius',
+                        ],
+                      },
+                    },
+                  },
+                  {
+                    properties: {
+                      type: { const: 'ring' },
+                      attributes: {
+                        properties: {
+                          innerRadius: { type: 'number' },
+                          outerRadius: { type: 'number' },
+                          thetaSegments: { type: 'number' },
+                          phiSegments: { type: 'number' },
+                          thetaStart: { type: 'number' },
+                          thetaLength: { type: 'number' },
+                        },
+                        required: [
+                          'name',
+                          'description',
+                          'position',
+                          'rotation',
+                          'scale',
+                          'material',
+                          'innerRadius',
+                          'outerRadius',
+                        ],
+                      },
+                    },
+                  },
+                  {
+                    properties: {
+                      type: { const: 'dodecahedron' },
+                      attributes: {
+                        properties: {
+                          radius: { type: 'number' },
+                          detail: { type: 'number' },
+                        },
+                        required: [
+                          'name',
+                          'description',
+                          'position',
+                          'rotation',
+                          'scale',
+                          'material',
+                          'radius',
+                        ],
+                      },
+                    },
+                  },
+                  {
+                    properties: {
+                      type: { const: 'icosahedron' },
+                      attributes: {
+                        properties: {
+                          radius: { type: 'number' },
+                          detail: { type: 'number' },
+                        },
+                        required: [
+                          'name',
+                          'description',
+                          'position',
+                          'rotation',
+                          'scale',
+                          'material',
+                          'radius',
+                        ],
+                      },
+                    },
+                  },
+                  {
+                    properties: {
+                      type: { const: 'octahedron' },
+                      attributes: {
+                        properties: {
+                          radius: { type: 'number' },
+                          detail: { type: 'number' },
+                        },
+                        required: [
+                          'name',
+                          'description',
+                          'position',
+                          'rotation',
+                          'scale',
+                          'material',
+                          'radius',
+                        ],
+                      },
+                    },
+                  },
+                  {
+                    properties: {
+                      type: { const: 'tetrahedron' },
+                      attributes: {
+                        properties: {
+                          radius: { type: 'number' },
+                          detail: { type: 'number' },
+                        },
+                        required: [
+                          'name',
+                          'description',
+                          'position',
+                          'rotation',
+                          'scale',
+                          'material',
+                          'radius',
+                        ],
+                      },
+                    },
+                  },
+                  {
+                    properties: {
+                      type: { const: 'torusknot' },
+                      attributes: {
+                        properties: {
+                          radius: { type: 'number' },
+                          tube: { type: 'number' },
+                          tubularSegments: { type: 'number' },
+                          radialSegments: { type: 'number' },
+                          p: { type: 'number' },
+                          q: { type: 'number' },
+                        },
+                        required: [
+                          'name',
+                          'description',
+                          'position',
+                          'rotation',
+                          'scale',
+                          'material',
+                          'radius',
+                          'tube',
+                        ],
+                      },
+                    },
+                  },
+                  {
+                    properties: {
+                      type: { const: 'text' },
+                      attributes: {
+                        properties: {
+                          text: { type: 'string' },
+                          size: { type: 'number' },
+                          height: { type: 'number' },
+                          curveSegments: { type: 'number' },
+                          bevelEnabled: { type: 'boolean' },
+                          bevelThickness: { type: 'number' },
+                          bevelSize: { type: 'number' },
+                          bevelSegments: { type: 'number' },
+                        },
+                        required: [
+                          'name',
+                          'description',
+                          'position',
+                          'rotation',
+                          'scale',
+                          'material',
+                          'text',
+                        ],
+                      },
+                    },
+                  },
+                  {
+                    properties: {
+                      type: { const: 'group' },
+                      attributes: {
+                        required: [
+                          'name',
+                          'description',
+                          'position',
+                          'rotation',
+                          'scale',
                         ],
                       },
                     },
@@ -149,12 +532,9 @@ export const tools = [
     description:
       'Gets the current scene. In order to save on token usage, use this tool only when necessary.',
     input_schema: {
-      $schema: 'https://json-schema.org/draft/2020-12/schema',
       type: 'object',
-      properties: {
-        name: { type: 'string' },
-      },
-      required: ['name'],
+      properties: {},
+      required: [],
     },
   },
 ] as ToolUnion[];
