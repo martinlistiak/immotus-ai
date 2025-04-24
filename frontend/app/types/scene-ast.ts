@@ -219,3 +219,8 @@ export type SceneTool =
   | "tetrahedron"
   | "torusknot"
   | "text";
+
+export enum CameraType {
+  THREE_D = "3d camera",
+  TWO_D = "2d camera",
+}

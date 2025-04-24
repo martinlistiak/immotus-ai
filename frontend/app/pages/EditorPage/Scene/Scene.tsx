@@ -1,31 +1,46 @@
 import { v4 as uuid } from "uuid";
-import { Environment, Grid, OrbitControls } from "@react-three/drei";
-import { Canvas } from "@react-three/fiber";
-import { Fragment, useState } from "react";
-import { Color, Vector3 } from "three";
+import {
+  Environment,
+  Grid,
+  OrbitControls,
+  OrthographicCamera,
+} from "@react-three/drei";
+import { Canvas, useThree } from "@react-three/fiber";
+import { Fragment, useEffect, useState } from "react";
+import {
+  Color,
+  Vector3,
+  EdgesGeometry,
+  LineBasicMaterial,
+  LineSegments,
+  Mesh,
+  Object3D,
+} from "three";
+
 import { useSceneContext } from "./Scene.context";
 import { Box } from "./objects/Box";
 import { Light } from "./objects/Light";
-import type {
-  AbstractSyntaxTree,
-  BoxAttributes,
-  LightAttributes,
-  MeshAttributes,
-  SphereAttributes,
-  PlaneAttributes,
-  CylinderAttributes,
-  ConeAttributes,
-  TorusAttributes,
-  CircleAttributes,
-  RingAttributes,
-  DodecahedronAttributes,
-  IcosahedronAttributes,
-  OctahedronAttributes,
-  TetrahedronAttributes,
-  TorusKnotAttributes,
-  TextAttributes,
-  SceneType,
-  ObjectType,
+import {
+  type AbstractSyntaxTree,
+  type BoxAttributes,
+  type LightAttributes,
+  type MeshAttributes,
+  type SphereAttributes,
+  type PlaneAttributes,
+  type CylinderAttributes,
+  type ConeAttributes,
+  type TorusAttributes,
+  type CircleAttributes,
+  type RingAttributes,
+  type DodecahedronAttributes,
+  type IcosahedronAttributes,
+  type OctahedronAttributes,
+  type TetrahedronAttributes,
+  type TorusKnotAttributes,
+  type TextAttributes,
+  type SceneType,
+  type ObjectType,
+  CameraType,
 } from "app/types/scene-ast";
 import { MeshComponent } from "./objects/Mesh";
 import { Sphere } from "./objects/Sphere";
@@ -48,12 +63,90 @@ const SceneEnvironment = () => {
   return <Environment preset="studio" background blur={1} />;
 };
 
+function LineDrawingLayer() {
+  const { scene } = useThree();
+  const lines: LineSegments[] = [];
+
+  useEffect(() => {
+    // Clear existing lines
+    scene.traverse((obj) => {
+      if (obj.userData && obj.userData.isOutlineLine) {
+        scene.remove(obj);
+      }
+    });
+
+    // Add new lines
+    scene.traverse((obj) => {
+      if (obj instanceof Mesh && obj.geometry) {
+        const edges = new EdgesGeometry(obj.geometry);
+        const line = new LineSegments(
+          edges,
+          new LineBasicMaterial({
+            color: "black",
+            linewidth: 1.5, // Note: THREE.js has limitations with line width
+          })
+        );
+
+        // Copy transform from the original mesh
+        line.position.copy(obj.position);
+        line.rotation.copy(obj.rotation);
+        line.scale.copy(obj.scale);
+
+        // Track this as an outline line
+        line.userData = { isOutlineLine: true };
+
+        // Add to scene
+        scene.add(line);
+        lines.push(line);
+      }
+    });
+
+    return () => {
+      // Cleanup on unmount
+      lines.forEach((line) => {
+        scene.remove(line);
+      });
+    };
+  }, [scene]);
+
+  return null;
+}
+
+// A specialized component for technical drawing mode
+function TechnicalDrawingView() {
+  const { scene } = useThree();
+
+  useEffect(() => {
+    // Hide all regular meshes and show only outlines
+    scene.traverse((obj) => {
+      if (obj instanceof Mesh) {
+        obj.visible = false;
+      }
+    });
+
+    // Set background to white for technical drawing look
+    scene.background = new Color(0xffffff);
+
+    return () => {
+      // Restore visibility when unmounted
+      scene.traverse((obj) => {
+        if (obj instanceof Mesh) {
+          obj.visible = true;
+        }
+      });
+    };
+  }, [scene]);
+
+  return <LineDrawingLayer />;
+}
+
 export function Scene({ ...props }) {
   const {
     scene,
     setSelectedObjects,
     activeTool,
     setActiveTool,
+    activeCamera,
     dispatchScene,
   } = useSceneContext();
   const [ghostPosition, setGhostPosition] = useState<Vector3 | null>(null);
@@ -173,30 +266,30 @@ export function Scene({ ...props }) {
     }
   };
 
+  const isActiveTool =
+    activeTool === "box" ||
+    activeTool === "sphere" ||
+    activeTool === "plane" ||
+    activeTool === "cylinder" ||
+    activeTool === "cone" ||
+    activeTool === "torus" ||
+    activeTool === "circle" ||
+    activeTool === "ring" ||
+    activeTool === "dodecahedron" ||
+    activeTool === "icosahedron" ||
+    activeTool === "octahedron" ||
+    activeTool === "tetrahedron" ||
+    activeTool === "torusknot" ||
+    activeTool === "text" ||
+    activeTool === "light";
+
   // Component to handle primitive placement interaction
   return (
     <div
       id="scene"
       className="w-[100vw] h-[100vh]"
       onPointerDown={(event) => {
-        if (
-          (activeTool === "box" ||
-            activeTool === "sphere" ||
-            activeTool === "plane" ||
-            activeTool === "cylinder" ||
-            activeTool === "cone" ||
-            activeTool === "torus" ||
-            activeTool === "circle" ||
-            activeTool === "ring" ||
-            activeTool === "dodecahedron" ||
-            activeTool === "icosahedron" ||
-            activeTool === "octahedron" ||
-            activeTool === "tetrahedron" ||
-            activeTool === "torusknot" ||
-            activeTool === "text" ||
-            activeTool === "light") &&
-          ghostPosition
-        ) {
+        if (isActiveTool && ghostPosition) {
           // Place the primitive at the ghost position
           handlePlacePrimitive(ghostPosition);
           event.stopPropagation();
@@ -209,7 +302,7 @@ export function Scene({ ...props }) {
         className="w-full h-full"
         dpr={[1, 1.5]}
         gl={{
-          antialias: false,
+          antialias: true,
           alpha: false,
           preserveDrawingBuffer: true,
         }}
@@ -227,38 +320,53 @@ export function Scene({ ...props }) {
           zoomSpeed={0.2}
           enabled={activeTool !== "box" && activeTool !== "light"} // Disable orbit controls when placing a box
         />
-        <color attach="background" args={["#2D2E32"]} />
 
-        <Grid
-          position={[0, 0, 0]}
-          args={[1000, 1000]}
-          cellSize={1}
-          sectionColor={new Color(0x555555)}
-          receiveShadow
+        {/* Background color - white for technical drawing mode in 2D, dark gray for 3D */}
+        <color
+          attach="background"
+          args={[activeCamera === CameraType.TWO_D ? "#ffffff" : "#2D2E32"]}
         />
+
+        {/* Only show grid in 3D mode */}
+        {activeCamera === CameraType.THREE_D && (
+          <Grid
+            position={[0, 0, 0]}
+            args={[1000, 1000]}
+            cellSize={1}
+            sectionColor={new Color(0x555555)}
+            receiveShadow
+          />
+        )}
+
+        {activeCamera === CameraType.TWO_D && (
+          <>
+            <OrthographicCamera
+              makeDefault
+              position={[0, 10, 0]} // Top-down for plan
+              zoom={50} // Adjust zoom to match drawing scale
+              near={0.1}
+              far={1000}
+            >
+              <primitive object={new Vector3(0, 0, 0)} />
+            </OrthographicCamera>
+            <TechnicalDrawingView />
+          </>
+        )}
+
         {/* Primitive placement helper */}
-        {(activeTool === "box" ||
-          activeTool === "sphere" ||
-          activeTool === "plane" ||
-          activeTool === "cylinder" ||
-          activeTool === "cone" ||
-          activeTool === "torus" ||
-          activeTool === "circle" ||
-          activeTool === "ring" ||
-          activeTool === "dodecahedron" ||
-          activeTool === "icosahedron" ||
-          activeTool === "octahedron" ||
-          activeTool === "tetrahedron" ||
-          activeTool === "torusknot" ||
-          activeTool === "text" ||
-          activeTool === "light") && (
+        {isActiveTool && (
           <PrimitivePlacer
             setGhostPosition={setGhostPosition}
             ghostPosition={ghostPosition}
             primitive={activeTool}
           />
         )}
-        <ambientLight intensity={0.25} />
+
+        {/* Only show ambient light in 3D mode */}
+        {activeCamera === CameraType.THREE_D && (
+          <ambientLight intensity={0.25} />
+        )}
+
         <group {...props} dispose={null}>
           <scene name={scene?.name}>
             {scene?.objects
@@ -357,24 +465,10 @@ export function Scene({ ...props }) {
                 </Fragment>
               ))}
 
-            <directionalLight position={[200, 200, 300]} intensity={0.2} />
-            {/* {(hoveredObject ||
-            
-              selectedObjects.some(
-                (object) => object.id === props.object.id
-              )) && (
-                <primitive
-                  object={new BoxHelper(meshRef.current!, "#ffffff")}
-                  ref={boxHelperRef}
-                >
-                  <lineBasicMaterial
-                    transparent
-                    depthTest={false}
-                    color="rgb(37, 137, 255)"
-                    linewidth={40}
-                  />
-                </primitive>
-              )} */}
+            {/* Only show directional light in 3D mode */}
+            {activeCamera === CameraType.THREE_D && (
+              <directionalLight position={[200, 200, 300]} intensity={0.2} />
+            )}
           </scene>
         </group>
       </Canvas>

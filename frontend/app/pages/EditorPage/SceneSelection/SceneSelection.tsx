@@ -2,16 +2,20 @@ import { Modal } from "app/components/Modal";
 import { useSceneContext } from "../Scene/Scene.context";
 import { IoMoonOutline } from "react-icons/io5";
 import cn from "classnames";
+import { useEffect } from "react";
 export const SceneSelection = () => {
   const {
     isSceneSelectionOpen,
     setIsSceneSelectionOpen,
     scenes,
+    refetchScenes,
     scene: currentScene,
     dispatchScene,
   } = useSceneContext();
 
-  console.log(scenes, isSceneSelectionOpen);
+  useEffect(() => {
+    if (isSceneSelectionOpen) refetchScenes();
+  }, [isSceneSelectionOpen, refetchScenes]);
 
   return (
     <Modal

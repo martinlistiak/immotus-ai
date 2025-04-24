@@ -1,4 +1,5 @@
 import type { SceneType } from "app/types/scene-ast";
+import { duplicateObjectRecursively } from "app/utils/utils";
 import { produce } from "immer";
 import { useEffect, useReducer, useState } from "react";
 import { v4 } from "uuid";
@@ -504,20 +505,34 @@ export const sceneReducer = (state: SceneType, action: Action) => {
       });
     case "DUPLICATE_OBJECT":
       return produce(state, (draft) => {
+        const duplicates = duplicateObjectRecursively(
+          action.payload.objectId,
+          draft.objects
+        ).map((d) =>
+          !d.parentId
+            ? {
+                ...d,
+                attributes: {
+                  ...d.attributes,
+                  name: `${d.attributes.name} (Copy)`,
+                },
+              }
+            : d
+        );
+
+        console.log(duplicates);
+
         const object = draft.objects.find(
           (object) => object.id === action.payload.objectId
         );
         if (object) {
           // splice the object at the index of the object
           // duplicate also the children recursively
-          draft.objects.splice(draft.objects.indexOf(object), 0, {
-            ...object,
-            id: v4(),
-            attributes: {
-              ...object.attributes,
-              name: `${object.attributes.name} (Copy)`,
-            },
-          });
+          draft.objects.splice(
+            draft.objects.indexOf(object) + 1,
+            0,
+            ...duplicates
+          );
         }
       });
     case "GROUP_OBJECTS":
@@ -537,7 +552,11 @@ export const sceneReducer = (state: SceneType, action: Action) => {
             scale: { x: 1, y: 1, z: 1 },
           },
         };
-        draft.objects.push(group as any);
+        draft.objects.splice(
+          draft.objects.indexOf(objects[0]) + 1,
+          0,
+          group as any
+        );
         for (const object of objects) {
           object.parentId = group.id;
         }

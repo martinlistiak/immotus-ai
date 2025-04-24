@@ -5,11 +5,12 @@ import {
   useSceneReducer,
   type Action,
 } from "app/reducers/scene-reducer";
-import type {
-  AbstractSyntaxTree,
-  SceneType,
-  SceneTool,
-  ObjectAttributes,
+import {
+  type AbstractSyntaxTree,
+  type SceneType,
+  type SceneTool,
+  type ObjectAttributes,
+  CameraType,
 } from "app/types/scene-ast";
 import {
   createContext,
@@ -42,6 +43,9 @@ export const SceneContext = createContext({
   historyIndex: 0,
   isSceneSelectionOpen: false,
   setIsSceneSelectionOpen: (_isOpen: boolean) => {},
+  refetchScenes: () => {},
+  activeCamera: null as CameraType | null,
+  setActiveCamera: (_camera: CameraType) => {},
 });
 
 export const SceneContextProvider = ({
@@ -63,6 +67,9 @@ export const SceneContextProvider = ({
   const [isLoading, setIsLoading] = useState(true);
   const [history, setHistory] = useState<SceneType[]>([]);
   const [historyIndex, setHistoryIndex] = useState(0);
+  const [activeCamera, setActiveCamera] = useState<CameraType | null>(
+    CameraType.THREE_D
+  );
   const [lastSceneUsed, setLastSceneUsed] = useLocalStorageState<string>(
     "lastSceneUsed",
     ""
@@ -235,6 +242,15 @@ export const SceneContextProvider = ({
     }
   };
 
+  const refetchScenes = useCallback(async () => {
+    try {
+      const scenes = await getScenes();
+      setScenes(scenes);
+    } catch (error) {
+      console.error(error);
+    }
+  }, []);
+
   return (
     <SceneContext.Provider
       value={{
@@ -257,6 +273,9 @@ export const SceneContextProvider = ({
         scenes,
         isSceneSelectionOpen,
         setIsSceneSelectionOpen,
+        refetchScenes,
+        activeCamera,
+        setActiveCamera,
       }}
     >
       {isLoading && (

@@ -1,34 +1,12 @@
+import { RxDimensions } from "react-icons/rx";
+import { BsBadge3dFill } from "react-icons/bs";
 import { Card } from "app/components/Card";
-import {
-  IoCubeOutline,
-  IoSunnyOutline,
-  IoMoveOutline,
-  IoSquareOutline,
-  IoTextOutline,
-  IoAddOutline,
-} from "react-icons/io5";
-import { ImSphere } from "react-icons/im";
-import { GiCube, GiCubeforce, GiRing } from "react-icons/gi";
-import { TbOctahedron } from "react-icons/tb";
-import { FaDiceD20 } from "react-icons/fa";
-import {
-  LuUndo2,
-  LuRedo2,
-  LuCone,
-  LuTorus,
-  LuCylinder,
-  LuPyramid,
-} from "react-icons/lu";
+import { IoMoveOutline, IoAddOutline } from "react-icons/io5";
+import { LuUndo2, LuRedo2 } from "react-icons/lu";
 import type { ReactNode } from "react";
 import cn from "classnames";
-import {
-  BsCursor,
-  BsCircle,
-  BsDiamond,
-  BsHexagon,
-  BsTriangle,
-} from "react-icons/bs";
-import type { SceneTool } from "app/types/scene-ast";
+import { BsCursor } from "react-icons/bs";
+import { CameraType, type SceneTool } from "app/types/scene-ast";
 import { useSceneContext } from "../Scene/Scene.context";
 import { Tooltip } from "app/components/Tooltip";
 import { NodeIcon } from "app/components/NodeIcon";
@@ -45,6 +23,7 @@ const Button = ({
   children,
   onClick,
   tool,
+  camera,
   disabled,
   tooltipPosition = "right",
   doNotSetActiveTool = false,
@@ -52,12 +31,14 @@ const Button = ({
   children: ReactNode;
   onClick?: () => void;
   tool?: SceneTool | string;
+  camera?: CameraType;
   disabled?: boolean;
   doNotSetActiveTool?: boolean;
   tooltipPosition?: "top" | "right" | "bottom" | "left";
 }) => {
-  const { activeTool, setActiveTool } = useSceneContext();
-  const isSelected = activeTool === tool;
+  const { activeTool, setActiveTool, activeCamera, setActiveCamera } =
+    useSceneContext();
+  const isSelected = activeTool === tool || activeCamera === camera;
   return (
     // tooltip
     <Tooltip text={tool!} initialPosition={tooltipPosition}>
@@ -70,8 +51,11 @@ const Button = ({
           }
         )}
         onClick={() => {
-          if (tool && !doNotSetActiveTool) {
+          if (!camera && tool && !doNotSetActiveTool) {
             setActiveTool(tool as SceneTool);
+          }
+          if (camera && !tool) {
+            setActiveCamera(camera);
           }
           onClick?.();
         }}
@@ -172,6 +156,22 @@ export const Toolbar = () => {
         </Button>
         <Button tool="select" tooltipPosition="bottom">
           <BsCursor className="w-5 h-5" />
+        </Button>
+      </Group>
+      <Group>
+        <Button
+          camera={CameraType.THREE_D}
+          tooltipPosition="bottom"
+          doNotSetActiveTool
+        >
+          <BsBadge3dFill className="w-5 h-5" />
+        </Button>
+        <Button
+          camera={CameraType.TWO_D}
+          tooltipPosition="bottom"
+          doNotSetActiveTool
+        >
+          <RxDimensions className="w-5 h-5" />
         </Button>
       </Group>
     </Card>
