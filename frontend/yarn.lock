@@ -891,6 +891,7 @@ __metadata:
     immer: "npm:^10.1.1"
     isbot: "npm:^5.1.17"
     react: "npm:^19.0.0"
+    react-colorful: "npm:^5.6.1"
     react-dom: "npm:^19.0.0"
     react-icons: "npm:^5.5.0"
     react-router: "npm:^7.4.0"
@@ -4854,6 +4855,16 @@ __metadata:
     iconv-lite: "npm:0.4.24"
     unpipe: "npm:1.0.0"
   checksum: 10c0/b201c4b66049369a60e766318caff5cb3cc5a900efd89bdac431463822d976ad0670912c931fdbdcf5543207daf6f6833bca57aa116e1661d2ea91e12ca692c4
+  languageName: node
+  linkType: hard
+
+"react-colorful@npm:^5.6.1":
+  version: 5.6.1
+  resolution: "react-colorful@npm:5.6.1"
+  peerDependencies:
+    react: ">=16.8.0"
+    react-dom: ">=16.8.0"
+  checksum: 10c0/48eb73cf71e10841c2a61b6b06ab81da9fffa9876134c239bfdebcf348ce2a47e56b146338e35dfb03512c85966bfc9a53844fc56bc50154e71f8daee59ff6f0
   languageName: node
   linkType: hard
 

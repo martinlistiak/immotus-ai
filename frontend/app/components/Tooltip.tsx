@@ -9,12 +9,14 @@ export const Tooltip = ({
   initialPosition = "bottom",
   offset = 8,
   delay = 0,
+  className,
 }: {
   children: React.ReactNode;
   text: string;
   initialPosition?: Position;
   offset?: number;
   delay?: number;
+  className?: string;
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [position, setPosition] = useState<Position>(initialPosition);
@@ -131,7 +133,7 @@ export const Tooltip = ({
 
   return (
     <div
-      className="relative inline-flex"
+      className={cn("relative inline-flex", className)}
       ref={containerRef}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -142,9 +144,8 @@ export const Tooltip = ({
         ref={tooltipRef}
         style={tooltipStyles}
         className={cn({
-          "absolute z-50 whitespace-nowrap rounded-md px-2 py-1 text-xs bg-gray-800 text-gray-300 capitalize":
+          "absolute z-50 whitespace-nowrap rounded-md px-2 py-1 text-xs bg-gray-800 text-gray-300 border border-gray-700 capitalize shadow-md":
             true,
-          "shadow-md": true,
           "pointer-events-none": true,
           "opacity-0 hidden": !isVisible,
           "opacity-100 visible": isVisible,

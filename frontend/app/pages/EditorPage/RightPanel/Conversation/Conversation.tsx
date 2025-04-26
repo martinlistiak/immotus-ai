@@ -1,19 +1,39 @@
 import { Card } from "app/components/Card";
 import cn from "classnames";
 import { useConversationContext } from "app/contexts/conversation.context";
+import { useEffect, useRef } from "react";
 
 export const Conversation = () => {
   const { messages, expandedToolPayloadIndex, setExpandedToolPayloadIndex } =
     useConversationContext();
+  const messagesRef = useRef(messages || []);
+  const messagesElementRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (messagesRef.current.length !== messages.length) {
+      messagesRef.current = messages;
+      if (messagesElementRef.current) {
+        messagesElementRef.current.scrollTo({
+          top: messagesElementRef.current.scrollHeight,
+          behavior: "smooth",
+        });
+      }
+    }
+  }, [messages]);
 
   return (
     <div>
-      <div className="space-y-2 max-h-[60vh] overflow-y-auto">
+      <div
+        ref={messagesElementRef}
+        className="space-y-2 max-h-[calc(100vh-181px)] pb-2 overflow-y-auto"
+      >
+        {!messages.length && (
+          <div className="text-gray-400 text-center text-xs mt-2">
+            No messages yet
+          </div>
+        )}
         {messages.length !== 0 && (
           <div className="flex flex-col gap-2">
-            {!messages.length && (
-              <div className="text-gray-400 text-center">No messages yet</div>
-            )}
             {messages.map((message, index) => (
               <Card
                 key={index}

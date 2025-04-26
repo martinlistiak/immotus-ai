@@ -1,5 +1,5 @@
 import { Input } from "app/components/Input";
-import { useSceneContext } from "../../Scene/Scene.context";
+import { useSceneContext } from "../../../Scene/Scene.context";
 import { useState, useEffect } from "react";
 import type { BaseObjectWithMaterialAttributes } from "app/types/scene-ast";
 import { ColorInput } from "app/components/ColorInput";

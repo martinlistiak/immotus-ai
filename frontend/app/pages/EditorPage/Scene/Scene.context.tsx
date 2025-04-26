@@ -46,6 +46,8 @@ export const SceneContext = createContext({
   refetchScenes: () => {},
   activeCamera: null as CameraType | null,
   setActiveCamera: (_camera: CameraType) => {},
+  hiddenObjectIds: [] as string[],
+  setHiddenObjectIds: (_objectIds: string[]) => {},
 });
 
 export const SceneContextProvider = ({
@@ -67,6 +69,7 @@ export const SceneContextProvider = ({
   const [isLoading, setIsLoading] = useState(true);
   const [history, setHistory] = useState<SceneType[]>([]);
   const [historyIndex, setHistoryIndex] = useState(0);
+  const [hiddenObjectIds, setHiddenObjectIds] = useState<string[]>([]);
   const [activeCamera, setActiveCamera] = useState<CameraType | null>(
     CameraType.THREE_D
   );
@@ -276,6 +279,8 @@ export const SceneContextProvider = ({
         refetchScenes,
         activeCamera,
         setActiveCamera,
+        hiddenObjectIds,
+        setHiddenObjectIds,
       }}
     >
       {isLoading && (

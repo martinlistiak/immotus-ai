@@ -1,6 +1,5 @@
-import { Card } from "app/components/Card";
 import { BasicObjectAttributes } from "./attributes/BasicObjectAttributes";
-import { useSceneContext } from "../Scene/Scene.context";
+import { useSceneContext } from "../../Scene/Scene.context";
 
 import { LightAttributes } from "./attributes/LightAttributes";
 import { MaterialAttributes } from "./attributes/MaterialAttributes";

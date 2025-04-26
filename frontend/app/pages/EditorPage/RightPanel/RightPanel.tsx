@@ -1,12 +1,13 @@
 import { Card } from "app/components/Card";
-import { AttributeInspector } from "../AttributeInspector/AttributeInspector";
+import { AttributeInspector } from "./AttributeInspector/AttributeInspector";
 import { useConversationContext } from "app/contexts/conversation.context";
-import { Conversation } from "../Conversation/Conversation";
+import { Conversation } from "./Conversation/Conversation";
 import { LuAudioLines } from "react-icons/lu";
 import { useEffect, useRef, useState } from "react";
 import cn from "classnames";
 import { useSceneContext } from "../Scene/Scene.context";
 import { Tabs } from "app/components/Tabs";
+import { Tooltip } from "app/components/Tooltip";
 
 enum RightPanelTab {
   CONVERSATION = "Conversation",
@@ -79,23 +80,29 @@ export const RightPanel = () => {
           placeholder="Type a message..."
         />
         <div className="flex gap-2 justify-end">
-          <button
-            disabled={isProcessing}
-            onMouseDownCapture={toggleRecording}
-            onTouchStart={toggleRecording}
-            onMouseUpCapture={toggleRecording}
-            onTouchEnd={toggleRecording}
-            className={cn({
-              "flex-1 bg-active text-white py-[3px] px-[6px] rounded-sm flex gap-2 items-center justify-center cursor-pointer hover:bg-active-hover transition-all":
-                true,
-              "bg-red-500": isRecording,
-              "bg-gray-700 animate-pulse !cursor-default hover:bg-gray-700":
-                isProcessing,
-            })}
+          <Tooltip
+            text="Hold to speak"
+            initialPosition="left"
+            className="w-full flex-1 flex"
           >
-            <LuAudioLines />
-            <span>Speak your wish</span>
-          </button>
+            <button
+              disabled={isProcessing}
+              onMouseDownCapture={toggleRecording}
+              onTouchStart={toggleRecording}
+              onMouseUpCapture={toggleRecording}
+              onTouchEnd={toggleRecording}
+              className={cn({
+                "w-full bg-active text-white py-[3px] px-[6px] rounded-sm flex gap-2 items-center justify-center cursor-pointer hover:bg-active-hover transition-all":
+                  true,
+                "bg-red-500": isRecording,
+                "bg-gray-700 animate-pulse !cursor-default hover:bg-gray-700":
+                  isProcessing,
+              })}
+            >
+              <LuAudioLines />
+              <span>Speak your wish</span>
+            </button>
+          </Tooltip>
           <button
             disabled={isProcessing}
             onClick={() => {

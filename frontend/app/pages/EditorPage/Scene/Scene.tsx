@@ -148,6 +148,7 @@ export function Scene({ ...props }) {
     setActiveTool,
     activeCamera,
     dispatchScene,
+    hiddenObjectIds,
   } = useSceneContext();
   const [ghostPosition, setGhostPosition] = useState<Vector3 | null>(null);
 
@@ -371,6 +372,7 @@ export function Scene({ ...props }) {
           <scene name={scene?.name}>
             {scene?.objects
               .filter((obj) => obj.parentId === null)
+              .filter((obj) => !hiddenObjectIds.includes(obj.id))
               .map((object) => (
                 <Fragment key={object.id}>
                   {object.type === "box" && (

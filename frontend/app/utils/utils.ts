@@ -9,6 +9,17 @@ export const findChildren = (
   return objects.filter((object) => object.parentId === parentId);
 };
 
+export const findChildrenRecursively = (
+  objects: AbstractSyntaxTree<ObjectAttributes>[],
+  parentId: string
+): AbstractSyntaxTree<ObjectAttributes>[] => {
+  const children = findChildren(objects, parentId);
+  return children.flatMap((child) => {
+    const grandChildren = findChildrenRecursively(objects, child.id);
+    return [child, ...grandChildren];
+  });
+};
+
 /**
  * Duplicate an object and all its children recursively
  * @param objectId - The id of the object to duplicate

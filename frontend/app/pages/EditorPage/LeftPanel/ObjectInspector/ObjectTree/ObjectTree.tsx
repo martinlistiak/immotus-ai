@@ -1,10 +1,11 @@
-import { useSceneContext } from "../../Scene/Scene.context";
+import { useSceneContext } from "../../../Scene/Scene.context";
 import cn from "classnames";
 import type { ObjectType } from "app/types/scene-ast";
-import { IoCaretDown } from "react-icons/io5";
+import { IoCaretDown, IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
 import { useState } from "react";
 import { Card } from "app/components/Card";
 import { NodeIcon } from "app/components/NodeIcon";
+import { findChildrenRecursively } from "app/utils/utils";
 const RightClickMenu = ({ onClose }: { onClose: () => void }) => {
   const { removeObjects, dispatchScene, selectedObjects } = useSceneContext();
 
@@ -104,6 +105,9 @@ const TreeNode = ({
     editingObjectName,
     dispatchScene,
     selectedObjects,
+    hiddenObjectIds,
+    scene,
+    setHiddenObjectIds,
   } = useSceneContext();
 
   const [isGroupOpen, setIsGroupOpen] = useState(true);
@@ -131,6 +135,7 @@ const TreeNode = ({
       );
     }
   };
+  const isHidden = hiddenObjectIds.includes(node.id);
   return (
     <div
       className={cn({
@@ -158,9 +163,10 @@ const TreeNode = ({
       {(node.type !== "group" || !isGroupOpen) && <HorizontalLine />}
       <div
         className={cn({
-          "text-xs py-1 pr-2 pl-8 relative cursor-default flex items-center gap-2":
+          "text-xs py-1 pr-3 pl-8 relative cursor-default flex items-center justify-between":
             true,
           "outline outline-active ": isHovered,
+          "opacity-50": isHidden,
         })}
         onPointerEnter={(e) => {
           e.stopPropagation();
@@ -175,34 +181,63 @@ const TreeNode = ({
           setEditingObjectName(node.id);
         }}
       >
-        <NodeIcon type={node.type} />
-        {editingObjectName === node.id ? (
-          <input
-            type="text"
-            autoFocus
-            className="w-full border bg-[rgba(255,255,255,0.3)] border-gray-300 rounded-sm h-[26px] outline-none -m-1 p-1"
-            defaultValue={node.name}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
+        <div className="flex items-center gap-2">
+          <NodeIcon type={node.type} />
+          {editingObjectName === node.id ? (
+            <input
+              type="text"
+              autoFocus
+              className="w-full border bg-[rgba(255,255,255,0.3)] border-gray-300 rounded-sm h-[26px] outline-none -m-1 p-1"
+              defaultValue={node.name}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  setEditingObjectName(null);
+                  dispatchScene({
+                    type: "RENAME_OBJECT",
+                    payload: { objectId: node.id, name: e.currentTarget.value },
+                  });
+                }
+              }}
+              onBlur={(e) => {
                 setEditingObjectName(null);
                 dispatchScene({
                   type: "RENAME_OBJECT",
-                  payload: { objectId: node.id, name: e.currentTarget.value },
+                  payload: { objectId: node.id, name: e.target.value },
                 });
-              }
-            }}
-            onBlur={(e) => {
-              setEditingObjectName(null);
-              dispatchScene({
-                type: "RENAME_OBJECT",
-                payload: { objectId: node.id, name: e.target.value },
-              });
+              }}
+            />
+          ) : (
+            <div className="border border-transparent w-full -m-1 p-1 rounded-sm h-[26px] text-ellipsis overflow-hidden whitespace-nowrap">
+              {node.name}
+            </div>
+          )}
+        </div>
+        {isHovered && !isHidden && (
+          <IoEyeOutline
+            className="w-[16px] h-[16px] hover:text-gray-300"
+            onClick={() => {
+              // const childrenIds = findChildrenRecursively(
+              //   scene?.objects || [],
+              //   node.id
+              // ).map((c) => c.id);
+              // console.log(childrenIds);
+              setHiddenObjectIds([...hiddenObjectIds, node.id]);
             }}
           />
-        ) : (
-          <div className="border border-transparent w-full -m-1 p-1 rounded-sm h-[26px] text-ellipsis overflow-hidden whitespace-nowrap">
-            {node.name}
-          </div>
+        )}
+        {isHidden && (
+          <IoEyeOffOutline
+            className="w-[16px] h-[16px] hover:text-gray-300"
+            onClick={() => {
+              // const childrenIds = findChildrenRecursively(
+              //   scene?.objects || [],
+              //   node.id
+              // ).map((c) => c.id);
+              setHiddenObjectIds(
+                hiddenObjectIds.filter((id) => id !== node.id)
+              );
+            }}
+          />
         )}
       </div>
       {node.type === "group" && (

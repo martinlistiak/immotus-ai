@@ -7,6 +7,18 @@ import type {
   SphereAttributes,
   LightAttributes,
   MeshAttributes,
+  CylinderAttributes,
+  PlaneAttributes,
+  ConeAttributes,
+  TorusKnotAttributes,
+  TextAttributes,
+  TetrahedronAttributes,
+  OctahedronAttributes,
+  IcosahedronAttributes,
+  DodecahedronAttributes,
+  CircleAttributes,
+  RingAttributes,
+  TorusAttributes,
 } from "app/types/scene-ast";
 import { Box } from "./Box";
 import { Sphere } from "./Sphere";
@@ -14,18 +26,31 @@ import { Light } from "./Light";
 import { MeshComponent } from "./Mesh";
 import { BoxHelper, Mesh } from "three";
 import { useFrame } from "@react-three/fiber";
-
+import { Cylinder } from "./Cylinder";
+import { Cone } from "./Cone";
+import { Plane } from "./Plane";
+import { TorusKnot } from "./TorusKnot";
+import { Tetrahedron } from "./Tetrahedron";
+import { Octahedron } from "./Octahedron";
+import { Icosahedron } from "./Icosahedron";
+import { Dodecahedron } from "./Dodecahedron";
+import { Circle } from "./Circle";
+import { Ring } from "./Ring";
+import { Torus } from "./Torus";
+import { Text } from "./Text";
 export function GroupComponent({
   object,
 }: {
   object: AbstractSyntaxTree<ObjectAttributes>;
 }) {
-  const { scene, selectedObjects, hoveredObject } = useSceneContext();
+  const { scene, selectedObjects, hoveredObject, hiddenObjectIds } =
+    useSceneContext();
   if (!scene) return null;
 
   // Find children of this group
   const children = scene.objects.filter(
-    (child) => child.parentId === object.id
+    (child) =>
+      child.parentId === object.id && !hiddenObjectIds.includes(child.id)
   );
 
   const meshRef = useRef<Mesh>(null);
@@ -89,6 +114,54 @@ export function GroupComponent({
             />
           )}
           {child.type === "group" && <GroupComponent object={child} />}
+          {child.type === "plane" && (
+            <Plane object={child as AbstractSyntaxTree<PlaneAttributes>} />
+          )}
+          {child.type === "cylinder" && (
+            <Cylinder
+              object={child as AbstractSyntaxTree<CylinderAttributes>}
+            />
+          )}
+          {child.type === "cone" && (
+            <Cone object={child as AbstractSyntaxTree<ConeAttributes>} />
+          )}
+          {child.type === "torus" && (
+            <Torus object={child as AbstractSyntaxTree<TorusAttributes>} />
+          )}
+          {child.type === "circle" && (
+            <Circle object={child as AbstractSyntaxTree<CircleAttributes>} />
+          )}
+          {child.type === "ring" && (
+            <Ring object={child as AbstractSyntaxTree<RingAttributes>} />
+          )}
+          {child.type === "dodecahedron" && (
+            <Dodecahedron
+              object={child as AbstractSyntaxTree<DodecahedronAttributes>}
+            />
+          )}
+          {child.type === "icosahedron" && (
+            <Icosahedron
+              object={child as AbstractSyntaxTree<IcosahedronAttributes>}
+            />
+          )}
+          {child.type === "octahedron" && (
+            <Octahedron
+              object={child as AbstractSyntaxTree<OctahedronAttributes>}
+            />
+          )}
+          {child.type === "tetrahedron" && (
+            <Tetrahedron
+              object={child as AbstractSyntaxTree<TetrahedronAttributes>}
+            />
+          )}
+          {child.type === "torusknot" && (
+            <TorusKnot
+              object={child as AbstractSyntaxTree<TorusKnotAttributes>}
+            />
+          )}
+          {child.type === "text" && (
+            <Text object={child as AbstractSyntaxTree<TextAttributes>} />
+          )}
         </Fragment>
       ))}
       {(hoveredObject?.id === object.id ||

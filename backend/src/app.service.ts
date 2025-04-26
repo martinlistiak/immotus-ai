@@ -53,6 +53,7 @@ export class AppService {
       }
     }
   }
+
   async streamResponse(
     prompt: string,
     language: string,
@@ -85,13 +86,13 @@ export class AppService {
       ];
     }
 
-    // Create a non-streaming response first to handle tool usage
-    const response = await anthropic.messages.create({
+    // Create a streaming response to handle tool usage
+    const stream = await anthropic.messages.stream({
       model: 'claude-3-7-sonnet-latest',
-      max_tokens: 8000,
+      max_tokens: 64000,
       temperature: 0.3,
       system:
-        'You are 3d designer, an architect and a interior designer. You are assisting with creating beautiful interior models. When modeling 1 meter equals 1 in scale. Always put tool_use into a separate content message. When using the SET_SCENE tool, you MUST provide a complete scene object in the input.scene property following the schema exactly.',
+        "You are 3d designer, an architect and a interior designer. You are assisting with creating beautiful interior models. When modeling 1 meter equals 1 in scale. Always put tool_use into a separate content message.\n\nIMPORTANT RULES FOR TOOLS:\n1. When using the SET_SCENE tool, you MUST provide a complete scene object in the input.scene property following the schema exactly with all required fields (id, name, description, createdAt, updatedAt, objects array with all their required attributes).\n2. When using ADD_OBJECT, ensure all required object properties are provided (id, type, attributes, parentId).\n3. NEVER send empty objects or undefined values as tool inputs. Each tool requires specific parameters as defined in its schema.\n4. Before calling a tool, first analyze whether you have ALL the required information for the tool inputs.\n5. If you don't have all required information for a tool, DO NOT call the tool - instead ask the user for the missing information first.\n6. For all position/rotation/scale changes, specify the exact objectId, coordinate, and numeric value.\n7. When generating a new scene, always provide realistic values for all fields (never leave any empty).",
       messages: [
         ...(conversation || []),
         {
@@ -103,8 +104,6 @@ export class AppService {
       tool_choice: { type: 'any' },
     });
 
-    console.log(response.content);
-
     const newMessages = [
       ...conversation,
       { role: 'user', content: prompt },
@@ -114,76 +113,69 @@ export class AppService {
     let textContent = '';
     const toolCalls: ToolUseBlock[] = [];
 
-    // Extract text from the response
-    if (response.content) {
-      for (const content of response.content) {
-        if (content.type === 'text') {
-          textContent += content.text;
-          newMessages.push({ role: 'assistant', content: content.text });
-        } else if (content.type === 'tool_use') {
-          toolCalls.push(content);
-          newMessages.push({
-            role: 'assistant',
-            content: JSON.stringify({
-              type: 'tool_use',
-              tool_name: content.name,
-              tool_input: content.input,
-            }),
-          });
+    // Handle the streaming response
+    try {
+      for await (const event of stream) {
+        if (event.type === 'content_block_delta') {
+          const delta = event.delta;
+
+          if ('text' in delta) {
+            textContent += delta.text;
+            // Send the text update
+            res.write(
+              `data: ${JSON.stringify({
+                type: 'text',
+                content: delta.text,
+              })}\n\n`,
+            );
+          }
+        } else if (
+          event.type === 'content_block_start' &&
+          event.content_block.type === 'tool_use'
+        ) {
+          // Initialize a new tool use block
+          toolCalls.push(event.content_block);
+        } else if (event.type === 'message_stop') {
+          // Process any tool calls when message is complete
+          if (textContent.trim()) {
+            newMessages.push({ role: 'assistant', content: textContent });
+            this.conversationService.upsertConversation({
+              name: 'default',
+              conversation: newMessages,
+            });
+          }
         }
       }
-    }
-
-    // Only if we have text to convert to speech
-    if (textContent.trim()) {
-      // Generate speech from the text
-      // const audioStream = await client.textToSpeech.convert(
-      //   '21m00Tcm4TlvDq8ikWAM', // voice ID
-      //   {
-      //     text: textContent,
-      //     model_id: 'eleven_turbo_v2_5',
-      //   },
-      // );
-
-      // // Convert the audioStream to base64
-      // const chunks: Buffer[] = [];
-      // for await (const chunk of audioStream) {
-      //   chunks.push(Buffer.from(chunk));
-      // }
-      // const audioBuffer = Buffer.concat(chunks);
-      // const base64Audio = audioBuffer.toString('base64');
-
-      // // Send the audio chunk to the client
-      // res.write(
-      //   `data: ${JSON.stringify({
-      //     type: 'audio',
-      //     content: base64Audio,
-      //     text: textContent,
-      //   })}\n\n`,
-      // );
-
-      // Send the text update
+    } catch (error) {
+      console.error('Error in streaming response:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       res.write(
-        `data: ${JSON.stringify({
-          type: 'text',
-          content: textContent,
-        })}\n\n`,
+        `data: ${JSON.stringify({ type: 'error', message: errorMessage })}\n\n`,
       );
-
-      this.conversationService.upsertConversation({
-        name: 'default',
-        conversation: newMessages,
-      });
     }
+
+    // Log the completed response
+    console.log('Claude response complete');
 
     // Process any tool calls
     for (const toolCall of toolCalls) {
+      newMessages.push({
+        role: 'assistant',
+        content: JSON.stringify({
+          type: 'tool_use',
+          tool_name: toolCall.name,
+          tool_input: toolCall.input,
+        }),
+      });
+
       if (toolCall.name === 'SET_SCENE') {
         // Log the tool call input for debugging
         console.log('SET_SCENE tool input:', JSON.stringify(toolCall.input));
 
-        // @ts-ignore
-        const scene = toolCall.input.scene;
+        // Access scene with proper type safety
+        const input = toolCall.input as Record<string, unknown>;
+        const scene = input.scene as SceneType | undefined;
 
         if (!scene) {
           console.error('Error: SET_SCENE tool called with empty scene input');
@@ -196,18 +188,43 @@ export class AppService {
           continue;
         }
 
+        // Validate required fields in the scene object
+        const requiredSceneFields = [
+          'id',
+          'name',
+          'description',
+          'createdAt',
+          'updatedAt',
+          'objects',
+        ];
+        const missingFields = requiredSceneFields.filter(
+          (field) => !scene[field],
+        );
+
+        if (missingFields.length > 0) {
+          console.error(
+            `Error: SET_SCENE missing required fields: ${missingFields.join(', ')}`,
+          );
+          res.write(
+            `data: ${JSON.stringify({
+              type: 'error',
+              message: `SET_SCENE missing required fields: ${missingFields.join(', ')}`,
+            })}\n\n`,
+          );
+          continue;
+        }
+
         // Send a scene update event to the client
         res.write(
           `data: ${JSON.stringify({
             type: 'tool_use',
             content: {
               type: 'SET_SCENE',
-              scene: scene as SceneType,
+              scene,
             },
           })}\n\n`,
         );
-      }
-      if (toolCall.name === 'GET_SCENE') {
+      } else if (toolCall.name === 'GET_SCENE') {
         // get current scene from the file
         const scene = this.sceneService.getScene({
           name: sceneName,
@@ -218,15 +235,18 @@ export class AppService {
             type: 'tool_use',
             content: {
               type: 'GET_SCENE',
-              scene: scene as SceneType,
+              scene,
             },
           })}\n\n`,
         );
 
-        const updatedConversation = conversation.filter(
-          // @ts-ignore
-          (message) => !message.content.includes('This is the current scene:'),
-        );
+        const updatedConversation = conversation.filter((message) => {
+          const content = message.content;
+          return (
+            typeof content === 'string' &&
+            !content.includes('This is the current scene:')
+          );
+        });
 
         // upsert into conversation
         this.conversationService.upsertConversation({
@@ -246,6 +266,86 @@ export class AppService {
           conversationName,
           sceneName,
           res,
+        );
+      } else if (toolCall.name === 'ADD_OBJECT') {
+        // Access object with proper type safety
+        const input = toolCall.input as Record<string, unknown>;
+        const object = input.object;
+
+        if (!object) {
+          console.error(
+            'Error: ADD_OBJECT tool called with empty object input',
+          );
+          res.write(
+            `data: ${JSON.stringify({
+              type: 'error',
+              message: 'ADD_OBJECT tool called with empty object input',
+            })}\n\n`,
+          );
+          continue;
+        }
+
+        // Type guard to check if object has required structure
+        const isValidObject = (
+          obj: unknown,
+        ): obj is Record<string, unknown> => {
+          return typeof obj === 'object' && obj !== null;
+        };
+
+        if (!isValidObject(object)) {
+          console.error(
+            'Error: ADD_OBJECT tool called with invalid object input',
+          );
+          res.write(
+            `data: ${JSON.stringify({
+              type: 'error',
+              message: 'ADD_OBJECT tool called with invalid object input',
+            })}\n\n`,
+          );
+          continue;
+        }
+
+        // Validate required fields for the object
+        const requiredObjectFields = ['id', 'type', 'attributes', 'parentId'];
+        const missingFields = requiredObjectFields.filter(
+          (field) => object[field] === undefined,
+        );
+
+        if (missingFields.length > 0) {
+          console.error(
+            `Error: ADD_OBJECT missing required fields: ${missingFields.join(', ')}`,
+          );
+          res.write(
+            `data: ${JSON.stringify({
+              type: 'error',
+              message: `ADD_OBJECT missing required fields: ${missingFields.join(', ')}`,
+            })}\n\n`,
+          );
+          continue;
+        }
+
+        // Pass the tool call to the client
+        res.write(
+          `data: ${JSON.stringify({
+            type: 'tool_use',
+            content: {
+              type: 'ADD_OBJECT',
+              object,
+            },
+          })}\n\n`,
+        );
+      } else {
+        // For other tools, just forward the tool call to the client
+        const inputData = toolCall.input as Record<string, unknown>;
+
+        res.write(
+          `data: ${JSON.stringify({
+            type: 'tool_use',
+            content: {
+              type: toolCall.name,
+              ...inputData,
+            },
+          })}\n\n`,
         );
       }
     }

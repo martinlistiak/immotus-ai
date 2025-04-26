@@ -1,8 +1,9 @@
 import { Modal } from "app/components/Modal";
 import { useSceneContext } from "../Scene/Scene.context";
-import { IoMoonOutline } from "react-icons/io5";
+import { IoMoonOutline, IoAddOutline } from "react-icons/io5";
 import cn from "classnames";
 import { useEffect } from "react";
+import { v4 as uuidv4 } from "uuid";
 export const SceneSelection = () => {
   const {
     isSceneSelectionOpen,
@@ -47,6 +48,61 @@ export const SceneSelection = () => {
             </div>
           </div>
         ))}
+        <div
+          onClick={() => {
+            setIsSceneSelectionOpen(false);
+            dispatchScene({
+              type: "SET_SCENE",
+              payload: {
+                scene: {
+                  id: uuidv4(),
+                  name: "New Scene",
+                  description: "New Scene",
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                  objects: [
+                    {
+                      id: uuidv4(),
+                      type: "box",
+                      attributes: {
+                        name: "New Box",
+                        description: "New Box",
+                        position: { x: 0, y: 0, z: 0 },
+                        rotation: { x: 0, y: 0, z: 0 },
+                        scale: { x: 1, y: 1, z: 1 },
+                        material: {
+                          color: "#ffffff",
+                          roughness: 0.5,
+                          metalness: 0.5,
+                        },
+                      },
+                      parentId: null,
+                    },
+                    {
+                      id: uuidv4(),
+                      type: "light",
+                      attributes: {
+                        name: "New Light",
+                        description: "New Light",
+                        position: { x: 0, y: 0, z: 0 },
+                        rotation: { x: 0, y: 0, z: 0 },
+                        scale: { x: 1, y: 1, z: 1 },
+                        color: "#ffffff",
+                        intensity: 1,
+                        distance: 10,
+                        decay: 0,
+                      },
+                      parentId: null,
+                    },
+                  ],
+                },
+              },
+            });
+          }}
+          className="text-white border border-gray-800 rounded-md p-2 w-[130px] h-[130px] flex flex-col items-center justify-center text-sm cursor-pointer hover:bg-gray-900 transition-all"
+        >
+          <IoAddOutline className="w-6 h-6" />
+        </div>
       </div>
     </Modal>
   );
