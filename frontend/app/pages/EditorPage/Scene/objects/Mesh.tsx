@@ -1,37 +1,19 @@
-import { BoxHelper, BufferAttribute, BufferGeometry } from "three";
+import { BufferAttribute, BufferGeometry } from "three";
 
 import type { MeshAttributes } from "app/types/scene-ast";
 
 import type { AbstractSyntaxTree } from "app/types/scene-ast";
-import { useSceneContext } from "../Scene.context";
-import { useMemo, useRef, useState } from "react";
-import type { Mesh, Vector3 } from "three";
-import { useFrame, useThree } from "@react-three/fiber";
+import { useSceneContext, useSceneHoverContext } from "../Scene.context";
+import { useMemo, useRef } from "react";
+import type { Mesh } from "three";
 
 export function MeshComponent(props: {
   object: AbstractSyntaxTree<MeshAttributes>;
 }) {
-  const {
-    setSelectedObjects,
-    selectedObjects,
-    onHoverObjectIn,
-    onHoverObjectOut,
-    hoveredObject,
-  } = useSceneContext();
+  const { setSelectedObjects } = useSceneContext();
+  const { onHoverObjectIn, onHoverObjectOut } = useSceneHoverContext();
   // This reference will give us direct access to the mesh
   const meshRef = useRef<Mesh>(null);
-  // Set up state for the hovered and active state
-  const isHovered = hoveredObject?.id === props.object.id;
-
-  // Add a ref for the mesh helper
-  const meshHelperRef = useRef<BoxHelper>(null);
-
-  // Update the mesh helper position in animation frame
-  useFrame(() => {
-    if (meshRef.current && meshHelperRef.current) {
-      meshHelperRef.current.update();
-    }
-  });
 
   const geometry = useMemo(() => {
     const geometry = new BufferGeometry();
@@ -64,6 +46,9 @@ export function MeshComponent(props: {
         castShadow
         receiveShadow
         geometry={geometry}
+        userData={{
+          id: props.object.id,
+        }}
       >
         {props.object.attributes.material && (
           <meshStandardMaterial
@@ -80,22 +65,6 @@ export function MeshComponent(props: {
           />
         )}
       </mesh>
-      {/* Conditional mesh helper */}
-      {/* {(isHovered ||
-        selectedObjects.some((object) => object.id === props.object.id)) &&
-        meshRef.current && (
-          <primitive
-            object={new BoxHelper(meshRef.current!, "#ffffff")}
-            ref={meshHelperRef}
-          >
-            <lineBasicMaterial
-              transparent
-              depthTest={false}
-              color="rgb(37, 137, 255)"
-              linewidth={40}
-            />
-          </primitive>
-        )} */}
     </>
   );
 }

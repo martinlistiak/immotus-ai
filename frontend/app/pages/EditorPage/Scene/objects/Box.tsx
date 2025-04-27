@@ -1,8 +1,7 @@
-import { BoxHelper } from "three";
 import type { BoxAttributes } from "app/types/scene-ast";
 
 import type { AbstractSyntaxTree } from "app/types/scene-ast";
-import { useSceneContext } from "../Scene.context";
+import { useSceneContext, useSceneHoverContext } from "../Scene.context";
 import { useRef } from "react";
 import type { Mesh, Vector3 } from "three";
 import { useFrame, useThree } from "@react-three/fiber";
@@ -111,27 +110,10 @@ export function BoxPlacer({
 }
 
 export function Box(props: { object: AbstractSyntaxTree<BoxAttributes> }) {
-  const {
-    setSelectedObjects,
-    selectedObjects,
-    onHoverObjectIn,
-    onHoverObjectOut,
-    hoveredObject,
-  } = useSceneContext();
+  const { setSelectedObjects } = useSceneContext();
+  const { onHoverObjectIn, onHoverObjectOut } = useSceneHoverContext();
   // This reference will give us direct access to the mesh
   const meshRef = useRef<Mesh>(null);
-  // Set up state for the hovered and active state
-  const isHovered = hoveredObject?.id === props.object.id;
-
-  // Add a ref for the box helper
-  const boxHelperRef = useRef<BoxHelper>(null);
-
-  // Update the box helper position in animation frame
-  useFrame(() => {
-    if (meshRef.current && boxHelperRef.current) {
-      boxHelperRef.current.update();
-    }
-  });
 
   return (
     <>
@@ -156,6 +138,9 @@ export function Box(props: { object: AbstractSyntaxTree<BoxAttributes> }) {
         ]}
         castShadow
         receiveShadow
+        userData={{
+          id: props.object.id,
+        }}
       >
         <boxGeometry
           args={[
@@ -178,38 +163,7 @@ export function Box(props: { object: AbstractSyntaxTree<BoxAttributes> }) {
             metalness={0.2}
           />
         )}
-        {/* <Edges
-          visible={
-            isHovered ||
-            selectedObjects.some((object) => object.id === props.object.id)
-          }
-          scale={1}
-          renderOrder={1000}
-          lineWidth={2}
-        >
-          <meshBasicMaterial
-            transparent
-            color="rgb(37, 137, 255)"
-            depthTest={false}
-          />
-        </Edges> */}
       </mesh>
-      {/* Conditional box helper */}
-      {(isHovered ||
-        selectedObjects.some((object) => object.id === props.object.id)) &&
-        meshRef.current && (
-          <primitive
-            object={new BoxHelper(meshRef.current!, "#ffffff")}
-            ref={boxHelperRef}
-          >
-            <lineBasicMaterial
-              transparent
-              depthTest={false}
-              color="rgb(37, 137, 255)"
-              linewidth={40}
-            />
-          </primitive>
-        )}
     </>
   );
 }

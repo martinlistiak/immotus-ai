@@ -17,6 +17,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -26,9 +27,6 @@ export const SceneContext = createContext({
   scenes: [] as { name: string; scene: SceneType }[],
   selectedObjects: [] as AbstractSyntaxTree<ObjectAttributes>[],
   setSelectedObjects: (objectIds: string[]) => {},
-  onHoverObjectIn: (objectId: string) => {},
-  onHoverObjectOut: (objectId: string) => {},
-  hoveredObject: null as AbstractSyntaxTree<ObjectAttributes> | null,
   editingObjectName: null as string | null,
   setEditingObjectName: (objectId: string | null) => {},
   activeTool: "move" as SceneTool,
@@ -58,8 +56,6 @@ export const SceneContextProvider = ({
   const [selectedObjects, setSelectedObjects] = useState<
     AbstractSyntaxTree<ObjectAttributes>[]
   >([]);
-  const [hoveredObject, setHoveredObject] =
-    useState<AbstractSyntaxTree<ObjectAttributes> | null>(null);
   const [editingObjectName, setEditingObjectName] = useState<string | null>(
     null
   );
@@ -232,19 +228,6 @@ export const SceneContextProvider = ({
     }
   }, [scene, isLoading]);
 
-  const onHoverObjectIn = (objectId: string) => {
-    const object = scene?.objects.find((object) => object.id === objectId);
-    if (object) {
-      setHoveredObject(object);
-    }
-  };
-
-  const onHoverObjectOut = (objectId: string) => {
-    if (hoveredObject?.id === objectId) {
-      setHoveredObject(null);
-    }
-  };
-
   const refetchScenes = useCallback(async () => {
     try {
       const scenes = await getScenes();
@@ -261,9 +244,6 @@ export const SceneContextProvider = ({
         dispatchScene: dispatch,
         selectedObjects,
         setSelectedObjects: handleSetSelectedObjects,
-        onHoverObjectIn,
-        onHoverObjectOut,
-        hoveredObject,
         editingObjectName,
         setEditingObjectName,
         activeTool,
@@ -298,6 +278,53 @@ export const useSceneContext = () => {
   if (!context) {
     throw new Error(
       "useSceneContext must be used within a SceneContextProvider"
+    );
+  }
+  return context;
+};
+
+export const SceneHoverContext = createContext({
+  onHoverObjectIn: (objectId: string) => {},
+  onHoverObjectOut: (objectId: string) => {},
+  hoveredObject: null as AbstractSyntaxTree<ObjectAttributes> | null,
+});
+
+export const SceneHoverContextProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const { scene } = useSceneContext();
+  const [hoveredObject, setHoveredObject] =
+    useState<AbstractSyntaxTree<ObjectAttributes> | null>(null);
+
+  const onHoverObjectIn = (objectId: string) => {
+    const object = scene?.objects.find((object) => object.id === objectId);
+    if (object) {
+      setHoveredObject(object);
+    }
+  };
+
+  const onHoverObjectOut = (objectId: string) => {
+    if (hoveredObject?.id === objectId) {
+      setHoveredObject(null);
+    }
+  };
+
+  return (
+    <SceneHoverContext.Provider
+      value={{ onHoverObjectIn, onHoverObjectOut, hoveredObject }}
+    >
+      {children}
+    </SceneHoverContext.Provider>
+  );
+};
+
+export const useSceneHoverContext = () => {
+  const context = useContext(SceneHoverContext);
+  if (!context) {
+    throw new Error(
+      "useSceneHoverContext must be used within a SceneHoverContextProvider"
     );
   }
   return context;

@@ -6,7 +6,7 @@ import {
   OrthographicCamera,
 } from "@react-three/drei";
 import { Canvas, useThree } from "@react-three/fiber";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import {
   Color,
   Vector3,
@@ -14,7 +14,6 @@ import {
   LineBasicMaterial,
   LineSegments,
   Mesh,
-  Object3D,
 } from "three";
 
 import { useSceneContext } from "./Scene.context";
@@ -58,87 +57,14 @@ import { Tetrahedron } from "./objects/Tetrahedron";
 import { TorusKnot } from "./objects/TorusKnot";
 import { Text } from "./objects/Text";
 import { PrimitivePlacer } from "./objects/PrimitivePlacer";
+import { BoxHelper } from "./helpers/BoxHelper";
+import { TechnicalDrawingView } from "./helpers/TechnicalDrawingsView";
 
 const SceneEnvironment = () => {
   return <Environment preset="studio" background blur={1} />;
 };
 
-function LineDrawingLayer() {
-  const { scene } = useThree();
-  const lines: LineSegments[] = [];
-
-  useEffect(() => {
-    // Clear existing lines
-    scene.traverse((obj) => {
-      if (obj.userData && obj.userData.isOutlineLine) {
-        scene.remove(obj);
-      }
-    });
-
-    // Add new lines
-    scene.traverse((obj) => {
-      if (obj instanceof Mesh && obj.geometry) {
-        const edges = new EdgesGeometry(obj.geometry);
-        const line = new LineSegments(
-          edges,
-          new LineBasicMaterial({
-            color: "black",
-            linewidth: 1.5, // Note: THREE.js has limitations with line width
-          })
-        );
-
-        // Copy transform from the original mesh
-        line.position.copy(obj.position);
-        line.rotation.copy(obj.rotation);
-        line.scale.copy(obj.scale);
-
-        // Track this as an outline line
-        line.userData = { isOutlineLine: true };
-
-        // Add to scene
-        scene.add(line);
-        lines.push(line);
-      }
-    });
-
-    return () => {
-      // Cleanup on unmount
-      lines.forEach((line) => {
-        scene.remove(line);
-      });
-    };
-  }, [scene]);
-
-  return null;
-}
-
 // A specialized component for technical drawing mode
-function TechnicalDrawingView() {
-  const { scene } = useThree();
-
-  useEffect(() => {
-    // Hide all regular meshes and show only outlines
-    scene.traverse((obj) => {
-      if (obj instanceof Mesh) {
-        obj.visible = false;
-      }
-    });
-
-    // Set background to white for technical drawing look
-    scene.background = new Color(0xffffff);
-
-    return () => {
-      // Restore visibility when unmounted
-      scene.traverse((obj) => {
-        if (obj instanceof Mesh) {
-          obj.visible = true;
-        }
-      });
-    };
-  }, [scene]);
-
-  return <LineDrawingLayer />;
-}
 
 export function Scene({ ...props }) {
   const {
@@ -471,6 +397,7 @@ export function Scene({ ...props }) {
             {activeCamera === CameraType.THREE_D && (
               <directionalLight position={[200, 200, 300]} intensity={0.2} />
             )}
+            <BoxHelper />
           </scene>
         </group>
       </Canvas>

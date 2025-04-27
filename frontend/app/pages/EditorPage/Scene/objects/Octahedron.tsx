@@ -1,31 +1,17 @@
-import { BoxHelper } from "three";
 import type {
   OctahedronAttributes,
   AbstractSyntaxTree,
 } from "app/types/scene-ast";
-import { useSceneContext } from "../Scene.context";
+import { useSceneContext, useSceneHoverContext } from "../Scene.context";
 import { useRef } from "react";
 import type { Mesh } from "three";
-import { useFrame } from "@react-three/fiber";
 
 export function Octahedron(props: {
   object: AbstractSyntaxTree<OctahedronAttributes>;
 }) {
-  const {
-    setSelectedObjects,
-    selectedObjects,
-    onHoverObjectIn,
-    onHoverObjectOut,
-    hoveredObject,
-  } = useSceneContext();
+  const { setSelectedObjects } = useSceneContext();
+  const { onHoverObjectIn, onHoverObjectOut } = useSceneHoverContext();
   const meshRef = useRef<Mesh>(null);
-  const isHovered = hoveredObject?.id === props.object.id;
-  const boxHelperRef = useRef<BoxHelper>(null);
-  useFrame(() => {
-    if (meshRef.current && boxHelperRef.current) {
-      boxHelperRef.current.update();
-    }
-  });
   return (
     <>
       <mesh
@@ -53,6 +39,9 @@ export function Octahedron(props: {
         ]}
         receiveShadow
         castShadow
+        userData={{
+          id: props.object.id,
+        }}
       >
         <octahedronGeometry
           args={[
@@ -75,21 +64,6 @@ export function Octahedron(props: {
           />
         )}
       </mesh>
-      {(isHovered ||
-        selectedObjects.some((object) => object.id === props.object.id)) &&
-        meshRef.current && (
-          <primitive
-            object={new BoxHelper(meshRef.current!, "#ffffff")}
-            ref={boxHelperRef}
-          >
-            <lineBasicMaterial
-              transparent
-              depthTest={false}
-              color="rgb(37, 137, 255)"
-              linewidth={40}
-            />
-          </primitive>
-        )}
     </>
   );
 }

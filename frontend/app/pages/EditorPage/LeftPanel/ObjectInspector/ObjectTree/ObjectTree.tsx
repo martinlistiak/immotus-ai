@@ -1,11 +1,13 @@
-import { useSceneContext } from "../../../Scene/Scene.context";
+import {
+  useSceneContext,
+  useSceneHoverContext,
+} from "../../../Scene/Scene.context";
 import cn from "classnames";
 import type { ObjectType } from "app/types/scene-ast";
 import { IoCaretDown, IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
 import { useState } from "react";
 import { Card } from "app/components/Card";
 import { NodeIcon } from "app/components/NodeIcon";
-import { findChildrenRecursively } from "app/utils/utils";
 const RightClickMenu = ({ onClose }: { onClose: () => void }) => {
   const { removeObjects, dispatchScene, selectedObjects } = useSceneContext();
 
@@ -97,18 +99,16 @@ const TreeNode = ({
   onShiftSelect: (objectId: string, nodes: TreeNodeType[]) => void;
 }) => {
   const {
-    onHoverObjectIn,
-    onHoverObjectOut,
-    hoveredObject,
     setSelectedObjects,
     setEditingObjectName,
     editingObjectName,
     dispatchScene,
     selectedObjects,
     hiddenObjectIds,
-    scene,
     setHiddenObjectIds,
   } = useSceneContext();
+  const { onHoverObjectIn, onHoverObjectOut, hoveredObject } =
+    useSceneHoverContext();
 
   const [isGroupOpen, setIsGroupOpen] = useState(true);
 

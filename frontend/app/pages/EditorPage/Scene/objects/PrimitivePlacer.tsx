@@ -3,6 +3,17 @@ import type { Mesh, Vector3 } from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useSceneContext } from "../Scene.context";
 import type { SceneTool } from "app/types/scene-ast";
+import {
+  EdgesGeometry,
+  LineBasicMaterial,
+  LineSegments,
+  BoxGeometry,
+  SphereGeometry,
+  PlaneGeometry,
+  CylinderGeometry,
+  ConeGeometry,
+} from "three";
+import { CameraType } from "app/types/scene-ast";
 
 interface PrimitivePlacerProps {
   setGhostPosition: (position: Vector3) => void;
@@ -15,9 +26,10 @@ export function PrimitivePlacer({
   ghostPosition,
   primitive,
 }: PrimitivePlacerProps) {
-  const { activeTool, scene } = useSceneContext();
+  const { activeTool, scene, activeCamera } = useSceneContext();
   const { camera, raycaster, mouse } = useThree();
   const planeRef = useRef<Mesh>(null);
+  const isTechnicalDrawing = activeCamera === CameraType.TWO_D;
 
   useFrame(() => {
     if (activeTool !== primitive || !planeRef.current) return;
@@ -108,90 +120,118 @@ export function PrimitivePlacer({
       {ghostPosition && activeTool === primitive && (
         <>
           {/* Different preview meshes based on primitive type */}
-          {primitive === "box" && (
-            <mesh position={ghostPosition}>
-              <boxGeometry args={[1, 1, 1]} />
-              <meshStandardMaterial color="orange" transparent opacity={0.5} />
-            </mesh>
-          )}
-          {primitive === "sphere" && (
-            <mesh position={ghostPosition}>
-              <sphereGeometry args={[0.5, 32, 16]} />
-              <meshStandardMaterial color="orange" transparent opacity={0.5} />
-            </mesh>
-          )}
-          {primitive === "plane" && (
-            <mesh position={ghostPosition} rotation={[-Math.PI / 2, 0, 0]}>
-              <planeGeometry args={[1, 1]} />
-              <meshStandardMaterial color="orange" transparent opacity={0.5} />
-            </mesh>
-          )}
-          {primitive === "cylinder" && (
-            <mesh position={ghostPosition}>
-              <cylinderGeometry args={[0.5, 0.5, 1, 32]} />
-              <meshStandardMaterial color="orange" transparent opacity={0.5} />
-            </mesh>
-          )}
-          {primitive === "cone" && (
-            <mesh position={ghostPosition}>
-              <coneGeometry args={[0.5, 1, 32]} />
-              <meshStandardMaterial color="orange" transparent opacity={0.5} />
-            </mesh>
-          )}
-          {primitive === "torus" && (
-            <mesh position={ghostPosition}>
-              <torusGeometry args={[0.5, 0.2, 16, 32]} />
-              <meshStandardMaterial color="orange" transparent opacity={0.5} />
-            </mesh>
-          )}
-          {primitive === "circle" && (
-            <mesh position={ghostPosition} rotation={[-Math.PI / 2, 0, 0]}>
-              <circleGeometry args={[0.5, 32]} />
-              <meshStandardMaterial color="orange" transparent opacity={0.5} />
-            </mesh>
-          )}
-          {primitive === "ring" && (
-            <mesh position={ghostPosition} rotation={[-Math.PI / 2, 0, 0]}>
-              <ringGeometry args={[0.3, 0.5, 32]} />
-              <meshStandardMaterial color="orange" transparent opacity={0.5} />
-            </mesh>
-          )}
-          {primitive === "dodecahedron" && (
-            <mesh position={ghostPosition}>
-              <dodecahedronGeometry args={[0.5]} />
-              <meshStandardMaterial color="orange" transparent opacity={0.5} />
-            </mesh>
-          )}
-          {primitive === "icosahedron" && (
-            <mesh position={ghostPosition}>
-              <icosahedronGeometry args={[0.5]} />
-              <meshStandardMaterial color="orange" transparent opacity={0.5} />
-            </mesh>
-          )}
-          {primitive === "octahedron" && (
-            <mesh position={ghostPosition}>
-              <octahedronGeometry args={[0.5]} />
-              <meshStandardMaterial color="orange" transparent opacity={0.5} />
-            </mesh>
-          )}
-          {primitive === "tetrahedron" && (
-            <mesh position={ghostPosition}>
-              <tetrahedronGeometry args={[0.5]} />
-              <meshStandardMaterial color="orange" transparent opacity={0.5} />
-            </mesh>
-          )}
-          {primitive === "torusknot" && (
-            <mesh position={ghostPosition}>
-              <torusKnotGeometry args={[0.5, 0.2, 64, 8]} />
-              <meshStandardMaterial color="orange" transparent opacity={0.5} />
-            </mesh>
-          )}
-          {primitive === "text" && (
-            <mesh position={ghostPosition}>
-              <boxGeometry args={[1, 0.5, 0.1]} />
-              <meshStandardMaterial color="orange" transparent opacity={0.5} />
-            </mesh>
-          )}
+          {primitive === "box" &&
+            (isTechnicalDrawing ? (
+              <group position={ghostPosition}>
+                <mesh visible={false}>
+                  <boxGeometry args={[1, 1, 1]} />
+                  <meshBasicMaterial visible={false} />
+                </mesh>
+                <lineSegments>
+                  <edgesGeometry args={[new BoxGeometry(1, 1, 1)]} />
+                  <lineBasicMaterial color="black" />
+                </lineSegments>
+              </group>
+            ) : (
+              <mesh position={ghostPosition}>
+                <boxGeometry args={[1, 1, 1]} />
+                <meshStandardMaterial
+                  color="orange"
+                  transparent
+                  opacity={0.5}
+                />
+              </mesh>
+            ))}
+          {primitive === "sphere" &&
+            (isTechnicalDrawing ? (
+              <group position={ghostPosition}>
+                <mesh visible={false}>
+                  <sphereGeometry args={[0.5, 32, 16]} />
+                  <meshBasicMaterial visible={false} />
+                </mesh>
+                <lineSegments>
+                  <edgesGeometry args={[new SphereGeometry(0.5, 32, 16)]} />
+                  <lineBasicMaterial color="black" />
+                </lineSegments>
+              </group>
+            ) : (
+              <mesh position={ghostPosition}>
+                <sphereGeometry args={[0.5, 32, 16]} />
+                <meshStandardMaterial
+                  color="orange"
+                  transparent
+                  opacity={0.5}
+                />
+              </mesh>
+            ))}
+          {primitive === "plane" &&
+            (isTechnicalDrawing ? (
+              <group position={ghostPosition} rotation={[-Math.PI / 2, 0, 0]}>
+                <mesh visible={false}>
+                  <planeGeometry args={[1, 1]} />
+                  <meshBasicMaterial visible={false} />
+                </mesh>
+                <lineSegments>
+                  <edgesGeometry args={[new PlaneGeometry(1, 1)]} />
+                  <lineBasicMaterial color="black" />
+                </lineSegments>
+              </group>
+            ) : (
+              <mesh position={ghostPosition} rotation={[-Math.PI / 2, 0, 0]}>
+                <planeGeometry args={[1, 1]} />
+                <meshStandardMaterial
+                  color="orange"
+                  transparent
+                  opacity={0.5}
+                />
+              </mesh>
+            ))}
+          {primitive === "cylinder" &&
+            (isTechnicalDrawing ? (
+              <group position={ghostPosition}>
+                <mesh visible={false}>
+                  <cylinderGeometry args={[0.5, 0.5, 1, 32]} />
+                  <meshBasicMaterial visible={false} />
+                </mesh>
+                <lineSegments>
+                  <edgesGeometry
+                    args={[new CylinderGeometry(0.5, 0.5, 1, 32)]}
+                  />
+                  <lineBasicMaterial color="black" />
+                </lineSegments>
+              </group>
+            ) : (
+              <mesh position={ghostPosition}>
+                <cylinderGeometry args={[0.5, 0.5, 1, 32]} />
+                <meshStandardMaterial
+                  color="orange"
+                  transparent
+                  opacity={0.5}
+                />
+              </mesh>
+            ))}
+          {primitive === "cone" &&
+            (isTechnicalDrawing ? (
+              <group position={ghostPosition}>
+                <mesh visible={false}>
+                  <coneGeometry args={[0.5, 1, 32]} />
+                  <meshBasicMaterial visible={false} />
+                </mesh>
+                <lineSegments>
+                  <edgesGeometry args={[new ConeGeometry(0.5, 1, 32)]} />
+                  <lineBasicMaterial color="black" />
+                </lineSegments>
+              </group>
+            ) : (
+              <mesh position={ghostPosition}>
+                <coneGeometry args={[0.5, 1, 32]} />
+                <meshStandardMaterial
+                  color="orange"
+                  transparent
+                  opacity={0.5}
+                />
+              </mesh>
+            ))}
           {primitive === "light" && (
             <pointLight
               position={[ghostPosition.x, ghostPosition.y, ghostPosition.z]}

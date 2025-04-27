@@ -134,6 +134,9 @@ export function Light(props: { object: AbstractSyntaxTree<LightAttributes> }) {
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
         shadow-bias={-0.001}
+        userData={{
+          id: props.object.id,
+        }}
       />
     </>
   );
