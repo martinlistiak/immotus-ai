@@ -13,7 +13,7 @@ import { useSceneContext } from "../Scene.context";
 
 function LineDrawingLayer() {
   const { scene } = useThree();
-  const { scene: sceneData } = useSceneContext();
+  const { scene: sceneData, hiddenObjectIds } = useSceneContext();
   const lines = useRef<LineSegments[]>([]);
 
   // When scene objects change, we need to update our line drawings
@@ -74,14 +74,14 @@ function LineDrawingLayer() {
       });
       lines.current = [];
     };
-  }, [scene, sceneData?.objects]); // Re-run when scene objects change
+  }, [scene, sceneData?.objects, hiddenObjectIds]); // Re-run when scene objects change
 
   return null;
 }
 
 export function TechnicalDrawingView() {
   const { scene } = useThree();
-  const { scene: sceneData } = useSceneContext();
+  const { scene: sceneData, hiddenObjectIds } = useSceneContext();
 
   useEffect(() => {
     // Hide all regular meshes and show only outlines
@@ -102,7 +102,7 @@ export function TechnicalDrawingView() {
         }
       });
     };
-  }, [scene, sceneData?.objects]); // Also re-run when scene objects change
+  }, [scene, sceneData?.objects, hiddenObjectIds]); // Also re-run when scene objects change
 
   return <LineDrawingLayer />;
 }

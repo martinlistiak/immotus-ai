@@ -528,8 +528,6 @@ export const sceneReducer = (state: SceneType, action: Action) => {
             : d
         );
 
-        console.log(duplicates);
-
         const object = draft.objects.find(
           (object) => object.id === action.payload.objectId
         );
@@ -732,7 +730,7 @@ export const sceneReducer = (state: SceneType, action: Action) => {
           (object) => object.id === action.payload.objectId
         );
         if (object) {
-          object.parentId = action.payload.parentId;
+          object.parentId = action.payload.parentId || null;
         }
       });
     default:

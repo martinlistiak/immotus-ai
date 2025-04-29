@@ -80,6 +80,13 @@ export const SceneContextProvider = ({
   const sceneRef = useRef<SceneType | null>(null);
   sceneRef.current = scene;
 
+  useEffect(() => {
+    if (lastSceneUsed) {
+      setHistory([JSON.parse(JSON.stringify(scene!))]);
+      setHistoryIndex(0);
+    }
+  }, [lastSceneUsed]);
+
   const dispatch = (action: Action, callback?: () => void) => {
     dispatchUnwrapped(action, (scene: SceneType) => {
       if (!action.skipHistory) {

@@ -569,11 +569,12 @@ export const CuttingPlan = ({
       }}
       className="overflow-auto"
     >
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 max-h-[calc(90vh-48px)]">
         <div className="flex items-start flex-col gap-2 mb-4">
           <div className="text-sm font-medium">Cutting Plan</div>
           <div className="text-xs text-gray-500">
-            This is a cutting plan for the material.
+            With specialized algorithms, we can calculate the best way to cut
+            the material from the stock panel.
           </div>
         </div>
         <div className="flex items-center gap-2 mb-4">

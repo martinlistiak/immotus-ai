@@ -11,6 +11,8 @@
     "dev": "yarn workspaces foreach -A -pvi -j unlimited run dev "
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.39.0"
+    "@anthropic-ai/sdk": "^0.39.0",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1"
   }
 }

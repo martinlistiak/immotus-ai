@@ -3,7 +3,7 @@ import { ObjectInspector } from "./ObjectInspector/ObjectInspector";
 import { BsArrowLeft } from "react-icons/bs";
 import { useSceneContext } from "../Scene/Scene.context";
 import { Tabs } from "app/components/Tabs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MaterialsInspector } from "./MaterialsInspector/MaterialsInspector";
 enum LeftPanelTabs {
   Scene = "Scene",
@@ -12,9 +12,19 @@ enum LeftPanelTabs {
 }
 
 export const LeftPanel = () => {
-  const { scene, isSceneSelectionOpen, setIsSceneSelectionOpen } =
-    useSceneContext();
+  const {
+    scene,
+    dispatchScene,
+    isSceneSelectionOpen,
+    setIsSceneSelectionOpen,
+  } = useSceneContext();
+  const [sceneName, setSceneName] = useState(scene?.name);
   const [activeTab, setActiveTab] = useState(LeftPanelTabs.Scene);
+
+  useEffect(() => {
+    setSceneName(scene?.name);
+  }, [scene]);
+
   return (
     <Card className="fixed top-4 !p-0 left-4 bottom-4 w-[230px] h-[calc(100vh-2rem)] flex flex-col">
       <div className="flex items-center gap-3 p-4 border-b border-gray-800 mb-2">
@@ -26,7 +36,33 @@ export const LeftPanel = () => {
         >
           <BsArrowLeft className="w-[14px] h-[14px]" />
         </div>
-        <h1 className="text-[10px]">{scene?.name}</h1>
+        <input
+          type="text"
+          className="text-[10px] -m-1 p-1 bg-transparent border border-transparent outline-none w-full hover:border-gray-700 rounded-sm"
+          value={sceneName}
+          onChange={(e) => {
+            setSceneName(e.target.value);
+          }}
+          onFocus={(e) => {
+            // select the whole text
+            e.currentTarget.select();
+          }}
+          onClick={(e) => {
+            e.preventDefault();
+          }}
+          onBlur={(e) => {
+            dispatchScene({
+              type: "SET_SCENE",
+              payload: {
+                scene: {
+                  ...scene!,
+                  name: e.target.value,
+                },
+              },
+              skipHistory: true,
+            });
+          }}
+        />
       </div>
       <Tabs
         tabs={[

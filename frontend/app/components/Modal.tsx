@@ -23,7 +23,7 @@ export const Modal = ({
       onClick={() => onClose?.()}
     >
       <Card
-        className={cn("relative", className)}
+        className={cn("relative max-w-[90vw] max-h-[90vh]", className)}
         onClick={(e) => e.stopPropagation()}
       >
         <RiCloseLine

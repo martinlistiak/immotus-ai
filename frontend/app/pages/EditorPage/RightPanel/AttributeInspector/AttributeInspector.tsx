@@ -13,7 +13,7 @@ import { CircleAttributes } from "./attributes/CircleAttributes";
 export const AttributeInspector = () => {
   const { selectedObjects } = useSceneContext();
 
-  if (selectedObjects.length !== 1) return null;
+  if (selectedObjects.length !== 1) return <></>;
 
   const selectedObject = selectedObjects[0];
 

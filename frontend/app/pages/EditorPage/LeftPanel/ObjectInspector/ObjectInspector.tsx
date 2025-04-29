@@ -1,5 +1,6 @@
 import { useSceneContext } from "../../Scene/Scene.context";
 import { ObjectTree, type TreeNodeType } from "./ObjectTree/ObjectTree";
+import { DndProvider } from "./ObjectTree/DndProvider";
 import { useMemo } from "react";
 import type { ObjectAttributes, AbstractSyntaxTree } from "app/types/scene-ast";
 
@@ -20,6 +21,7 @@ const transformObjectsToTreeNodesRecursive = (
     id: object.id,
     name: object.attributes.name,
     type: object.type,
+    parentId: object.parentId,
     children: transformObjectsToTreeNodesRecursive(childObjects, object),
   })) as TreeNodeType[];
 };
@@ -31,5 +33,9 @@ export const ObjectInspector = () => {
     [scene?.objects]
   );
 
-  return <ObjectTree nodes={nodes} level={0} />;
+  return (
+    <DndProvider>
+      <ObjectTree nodes={nodes} level={0} />
+    </DndProvider>
+  );
 };

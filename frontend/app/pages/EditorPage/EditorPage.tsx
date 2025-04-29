@@ -2,6 +2,7 @@ import { Scene } from "./Scene/Scene";
 import { Toolbar } from "./Toolbar/Toolbar";
 import {
   SceneContextProvider,
+  SceneDragAndDropContextProvider,
   SceneHoverContextProvider,
 } from "./Scene/Scene.context";
 import { RightPanel } from "./RightPanel/RightPanel";
@@ -12,13 +13,15 @@ export const EditorPage = () => {
   return (
     <SceneContextProvider>
       <SceneHoverContextProvider>
-        <ConversationContextProvider>
-          <Scene />
-          <LeftPanel />
-          <Toolbar />
-          <RightPanel />
-          <SceneSelection />
-        </ConversationContextProvider>
+        <SceneDragAndDropContextProvider>
+          <ConversationContextProvider>
+            <Scene />
+            <LeftPanel />
+            <Toolbar />
+            <RightPanel />
+            <SceneSelection />
+          </ConversationContextProvider>
+        </SceneDragAndDropContextProvider>
       </SceneHoverContextProvider>
     </SceneContextProvider>
   );

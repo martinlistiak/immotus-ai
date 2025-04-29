@@ -1,13 +1,30 @@
 import {
   useSceneContext,
   useSceneHoverContext,
+  useSceneDragAndDropContext,
 } from "../../../Scene/Scene.context";
 import cn from "classnames";
 import type { ObjectType } from "app/types/scene-ast";
 import { IoCaretDown, IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card } from "app/components/Card";
 import { NodeIcon } from "app/components/NodeIcon";
+import { useDrag, useDrop } from "react-dnd";
+import { getEmptyImage } from "react-dnd-html5-backend";
+
+// DnD item types
+const ItemTypes = {
+  TREE_NODE: "tree-node",
+};
+
+// DnD item structure
+interface DragItem {
+  id: string;
+  type: ObjectType;
+  index: number;
+  name: string;
+}
+
 const RightClickMenu = ({ onClose }: { onClose: () => void }) => {
   const { removeObjects, dispatchScene, selectedObjects } = useSceneContext();
 
@@ -68,6 +85,7 @@ export type TreeNodeType = {
   name: string;
   children: TreeNodeType[];
   type: ObjectType;
+  parentId?: string | null;
 };
 
 const VerticalLine = ({ isLastChild }: { isLastChild: boolean }) => {
@@ -87,16 +105,23 @@ const HorizontalLine = () => {
   );
 };
 
+// Drop position indicator
+const DropIndicator = () => {
+  return <div className="absolute left-0 right-0 h-[2px] bg-blue-500 z-20" />;
+};
+
 const TreeNode = ({
   node,
   level,
   nodes,
   onShiftSelect,
+  index,
 }: {
   node: TreeNodeType;
   level: number;
   nodes: TreeNodeType[];
   onShiftSelect: (objectId: string, nodes: TreeNodeType[]) => void;
+  index: number;
 }) => {
   const {
     setSelectedObjects,
@@ -109,8 +134,14 @@ const TreeNode = ({
   } = useSceneContext();
   const { onHoverObjectIn, onHoverObjectOut, hoveredObject } =
     useSceneHoverContext();
+  const { onDragStart, onDragEnd, draggingObject } =
+    useSceneDragAndDropContext();
 
   const [isGroupOpen, setIsGroupOpen] = useState(true);
+  const [dropPosition, setDropPosition] = useState<
+    "before" | "inside" | "after" | null
+  >(null);
+  const ref = useRef<HTMLDivElement>(null);
 
   const isHovered = hoveredObject?.id === node.id;
   const isSelected = selectedObjects.some((object) => object.id === node.id);
@@ -118,6 +149,96 @@ const TreeNode = ({
 
   const isLastChild =
     nodes.findIndex((n) => n.id === node.id) === nodes.length - 1;
+
+  // Set up drag
+  const [{ isDragging }, drag, preview] = useDrag({
+    type: ItemTypes.TREE_NODE,
+    item: (): DragItem => {
+      onDragStart(node.id);
+      return { id: node.id, type: node.type, index, name: node.name };
+    },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+    end: (item, monitor) => {
+      if (!monitor.didDrop()) {
+        onDragEnd(node.id, "");
+      }
+    },
+  });
+
+  // Use empty image as drag preview (we'll handle custom preview elsewhere)
+  useEffect(() => {
+    preview(getEmptyImage(), { captureDraggingState: true });
+  }, [preview]);
+
+  // Set up drop
+  const [{ isOver }, drop] = useDrop({
+    accept: ItemTypes.TREE_NODE,
+    hover: (item: DragItem, monitor) => {
+      if (!ref.current) {
+        return;
+      }
+
+      // Don't allow dropping onto self
+      if (item.id === node.id) {
+        setDropPosition(null);
+        return;
+      }
+
+      // Get the position of the cursor
+      const hoverBoundingRect = ref.current.getBoundingClientRect();
+      const hoverMiddleY =
+        (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+      const clientOffset = monitor.getClientOffset();
+      const hoverClientY = clientOffset!.y - hoverBoundingRect.top;
+
+      // Determine drop position
+      if (hoverClientY < hoverMiddleY * 0.5) {
+        setDropPosition("before");
+      } else if (hoverClientY > hoverMiddleY * 1.5) {
+        setDropPosition("after");
+      } else {
+        // Only allow dropping inside groups
+        if (node.type === "group") {
+          setDropPosition("inside");
+        } else {
+          setDropPosition("after");
+        }
+      }
+    },
+    drop: (item: DragItem, monitor) => {
+      if (!ref.current) {
+        return;
+      }
+
+      // Don't allow dropping onto self
+      if (item.id === node.id) {
+        return;
+      }
+
+      // Calculate parent id based on drop position
+      let parentId = "";
+
+      if (dropPosition === "inside" && node.type === "group") {
+        // If dropping inside a group, use the group's ID as parent
+        parentId = node.id;
+      } else {
+        // For before/after positions, use the same parent as the current node
+        // This keeps the item at the same level in the hierarchy
+        parentId = node.parentId || "";
+      }
+
+      onDragEnd(item.id, parentId);
+      setDropPosition(null);
+    },
+    collect: (monitor) => ({
+      isOver: monitor.isOver(),
+    }),
+  });
+
+  // Apply refs
+  drag(drop(ref));
 
   const onClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
@@ -138,10 +259,12 @@ const TreeNode = ({
   const isHidden = hiddenObjectIds.includes(node.id);
   return (
     <div
+      ref={ref}
       className={cn({
         "flex flex-col gap-x-2 relative hover:bg-gray-800": true,
         "bg-gray-800": isHovered,
         "!bg-active text-white": isSelected,
+        "opacity-50": isDragging,
       })}
       onClick={onClick}
       onContextMenu={(e) => {
@@ -160,6 +283,7 @@ const TreeNode = ({
         }
       }}
     >
+      {isOver && dropPosition === "before" && <DropIndicator />}
       {(node.type !== "group" || !isGroupOpen) && <HorizontalLine />}
       <div
         className={cn({
@@ -220,7 +344,6 @@ const TreeNode = ({
               //   scene?.objects || [],
               //   node.id
               // ).map((c) => c.id);
-              // console.log(childrenIds);
               setHiddenObjectIds([...hiddenObjectIds, node.id]);
             }}
           />
@@ -263,16 +386,18 @@ const TreeNode = ({
           hidden: !isGroupOpen,
         })}
       >
-        {node.children.map((child) => (
+        {node.children.map((child, idx) => (
           <TreeNode
             key={child.id}
             node={child}
             nodes={node.children}
             level={level + 1}
             onShiftSelect={onShiftSelect}
+            index={idx}
           />
         ))}
       </div>
+      {isOver && dropPosition === "after" && <DropIndicator />}
       {node.type !== "group" && <VerticalLine isLastChild={isLastChild} />}
     </div>
   );
@@ -304,13 +429,14 @@ export const ObjectTree = ({
 
   return (
     <div className="flex flex-col relative">
-      {nodes.map((node) => (
+      {nodes.map((node, index) => (
         <TreeNode
           key={node.id}
           node={node}
           nodes={nodes}
           onShiftSelect={onShiftSelect}
           level={level + 1}
+          index={index}
         />
       ))}
     </div>
