@@ -9,5 +9,11 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
-  return <EditorPage />;
+  return (
+    <>
+      <EditorPage />
+      <div id="tooltip" />
+      <div id="modal" />
+    </>
+  );
 }

@@ -98,7 +98,7 @@ export function Scene({ ...props }) {
           z: 1,
         },
         rotation: {
-          x: 0,
+          x: activeTool === "plane" ? -Math.PI / 2 : 0,
           y: 0,
           z: 0,
         },

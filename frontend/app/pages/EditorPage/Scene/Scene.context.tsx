@@ -329,3 +329,52 @@ export const useSceneHoverContext = () => {
   }
   return context;
 };
+
+export const SceneDragAndDropContext = createContext({
+  onDragStart: (_objectId: string) => {},
+  onDragEnd: (_objectId: string, _parentId: string) => {},
+  draggingObject: null as AbstractSyntaxTree<ObjectAttributes> | null,
+});
+
+export const SceneDragAndDropContextProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const { scene, dispatchScene } = useSceneContext();
+  const [draggingObject, setDraggingObject] =
+    useState<AbstractSyntaxTree<ObjectAttributes> | null>(null);
+
+  const onDragStart = (objectId: string) => {
+    const object = scene?.objects.find((object) => object.id === objectId);
+    if (object) {
+      setDraggingObject(object);
+    }
+  };
+
+  const onDragEnd = (objectId: string, parentId: string) => {
+    setDraggingObject(null);
+    dispatchScene({
+      type: "MOVE_OBJECT_IN_TREE",
+      payload: { objectId, parentId },
+    });
+  };
+
+  return (
+    <SceneDragAndDropContext.Provider
+      value={{ onDragStart, onDragEnd, draggingObject }}
+    >
+      {children}
+    </SceneDragAndDropContext.Provider>
+  );
+};
+
+export const useSceneDragAndDropContext = () => {
+  const context = useContext(SceneDragAndDropContext);
+  if (!context) {
+    throw new Error(
+      "useSceneDragAndDropContext must be used within a SceneDragAndDropContextProvider"
+    );
+  }
+  return context;
+};

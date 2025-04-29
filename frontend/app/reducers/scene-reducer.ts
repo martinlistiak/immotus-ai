@@ -288,6 +288,13 @@ type ChangeTextPropertyAction = {
   };
 };
 
+type MoveObjectInTreeAction = {
+  type: "MOVE_OBJECT_IN_TREE";
+  payload: {
+    objectId: string;
+    parentId: string;
+  };
+};
 export type Action =
   | (
       | ChangeObjectPositionAction
@@ -319,6 +326,7 @@ export type Action =
       | ChangeTetrahedronPropertyAction
       | ChangeTorusKnotPropertyAction
       | ChangeTextPropertyAction
+      | MoveObjectInTreeAction
     ) & { skipHistory?: boolean };
 
 export const initialScene: SceneType = {
@@ -716,6 +724,15 @@ export const sceneReducer = (state: SceneType, action: Action) => {
         if (object && object.type === "text") {
           (object.attributes as any)[action.payload.property] =
             action.payload.value;
+        }
+      });
+    case "MOVE_OBJECT_IN_TREE":
+      return produce(state, (draft) => {
+        const object = draft.objects.find(
+          (object) => object.id === action.payload.objectId
+        );
+        if (object) {
+          object.parentId = action.payload.parentId;
         }
       });
     default:

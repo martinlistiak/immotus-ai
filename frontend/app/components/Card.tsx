@@ -6,7 +6,7 @@ export const Card = ({
 }: {
   children: React.ReactNode;
   className?: string;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
 } & React.HTMLAttributes<HTMLDivElement>) => {
   return (
     <div

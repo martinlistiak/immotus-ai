@@ -12,7 +12,16 @@ import {
   PlaneGeometry,
   CylinderGeometry,
   ConeGeometry,
+  TorusGeometry,
+  CircleGeometry,
+  RingGeometry,
+  DodecahedronGeometry,
+  IcosahedronGeometry,
+  OctahedronGeometry,
+  TetrahedronGeometry,
+  TorusKnotGeometry,
 } from "three";
+import { Text as DreiText } from "@react-three/drei";
 import { CameraType } from "app/types/scene-ast";
 
 interface PrimitivePlacerProps {
@@ -232,6 +241,232 @@ export function PrimitivePlacer({
                 />
               </mesh>
             ))}
+
+          {primitive === "torus" &&
+            (isTechnicalDrawing ? (
+              <group position={ghostPosition}>
+                <mesh visible={false}>
+                  <torusGeometry args={[0.5, 0.2, 16, 32]} />
+                  <meshBasicMaterial visible={false} />
+                </mesh>
+                <lineSegments>
+                  <edgesGeometry args={[new TorusGeometry(0.5, 0.2, 16, 32)]} />
+                  <lineBasicMaterial color="black" />
+                </lineSegments>
+              </group>
+            ) : (
+              <mesh position={ghostPosition}>
+                <torusGeometry args={[0.5, 0.2, 16, 32]} />
+                <meshStandardMaterial
+                  color="orange"
+                  transparent
+                  opacity={0.5}
+                />
+              </mesh>
+            ))}
+
+          {primitive === "circle" &&
+            (isTechnicalDrawing ? (
+              <group position={ghostPosition} rotation={[-Math.PI / 2, 0, 0]}>
+                <mesh visible={false}>
+                  <circleGeometry args={[0.5, 32]} />
+                  <meshBasicMaterial visible={false} />
+                </mesh>
+                <lineSegments>
+                  <edgesGeometry args={[new CircleGeometry(0.5, 32)]} />
+                  <lineBasicMaterial color="black" />
+                </lineSegments>
+              </group>
+            ) : (
+              <mesh position={ghostPosition} rotation={[-Math.PI / 2, 0, 0]}>
+                <circleGeometry args={[0.5, 32]} />
+                <meshStandardMaterial
+                  color="orange"
+                  transparent
+                  opacity={0.5}
+                />
+              </mesh>
+            ))}
+
+          {primitive === "ring" &&
+            (isTechnicalDrawing ? (
+              <group position={ghostPosition} rotation={[-Math.PI / 2, 0, 0]}>
+                <mesh visible={false}>
+                  <ringGeometry args={[0.3, 0.5, 32]} />
+                  <meshBasicMaterial visible={false} />
+                </mesh>
+                <lineSegments>
+                  <edgesGeometry args={[new RingGeometry(0.3, 0.5, 32)]} />
+                  <lineBasicMaterial color="black" />
+                </lineSegments>
+              </group>
+            ) : (
+              <mesh position={ghostPosition} rotation={[-Math.PI / 2, 0, 0]}>
+                <ringGeometry args={[0.3, 0.5, 32]} />
+                <meshStandardMaterial
+                  color="orange"
+                  transparent
+                  opacity={0.5}
+                />
+              </mesh>
+            ))}
+
+          {primitive === "dodecahedron" &&
+            (isTechnicalDrawing ? (
+              <group position={ghostPosition}>
+                <mesh visible={false}>
+                  <dodecahedronGeometry args={[0.5]} />
+                  <meshBasicMaterial visible={false} />
+                </mesh>
+                <lineSegments>
+                  <edgesGeometry args={[new DodecahedronGeometry(0.5)]} />
+                  <lineBasicMaterial color="black" />
+                </lineSegments>
+              </group>
+            ) : (
+              <mesh position={ghostPosition}>
+                <dodecahedronGeometry args={[0.5]} />
+                <meshStandardMaterial
+                  color="orange"
+                  transparent
+                  opacity={0.5}
+                />
+              </mesh>
+            ))}
+
+          {primitive === "icosahedron" &&
+            (isTechnicalDrawing ? (
+              <group position={ghostPosition}>
+                <mesh visible={false}>
+                  <icosahedronGeometry args={[0.5]} />
+                  <meshBasicMaterial visible={false} />
+                </mesh>
+                <lineSegments>
+                  <edgesGeometry args={[new IcosahedronGeometry(0.5)]} />
+                  <lineBasicMaterial color="black" />
+                </lineSegments>
+              </group>
+            ) : (
+              <mesh position={ghostPosition}>
+                <icosahedronGeometry args={[0.5]} />
+                <meshStandardMaterial
+                  color="orange"
+                  transparent
+                  opacity={0.5}
+                />
+              </mesh>
+            ))}
+
+          {primitive === "octahedron" &&
+            (isTechnicalDrawing ? (
+              <group position={ghostPosition}>
+                <mesh visible={false}>
+                  <octahedronGeometry args={[0.5]} />
+                  <meshBasicMaterial visible={false} />
+                </mesh>
+                <lineSegments>
+                  <edgesGeometry args={[new OctahedronGeometry(0.5)]} />
+                  <lineBasicMaterial color="black" />
+                </lineSegments>
+              </group>
+            ) : (
+              <mesh position={ghostPosition}>
+                <octahedronGeometry args={[0.5]} />
+                <meshStandardMaterial
+                  color="orange"
+                  transparent
+                  opacity={0.5}
+                />
+              </mesh>
+            ))}
+
+          {primitive === "tetrahedron" &&
+            (isTechnicalDrawing ? (
+              <group position={ghostPosition}>
+                <mesh visible={false}>
+                  <tetrahedronGeometry args={[0.5]} />
+                  <meshBasicMaterial visible={false} />
+                </mesh>
+                <lineSegments>
+                  <edgesGeometry args={[new TetrahedronGeometry(0.5)]} />
+                  <lineBasicMaterial color="black" />
+                </lineSegments>
+              </group>
+            ) : (
+              <mesh position={ghostPosition}>
+                <tetrahedronGeometry args={[0.5]} />
+                <meshStandardMaterial
+                  color="orange"
+                  transparent
+                  opacity={0.5}
+                />
+              </mesh>
+            ))}
+
+          {primitive === "torusknot" &&
+            (isTechnicalDrawing ? (
+              <group position={ghostPosition}>
+                <mesh visible={false}>
+                  <torusKnotGeometry args={[0.3, 0.1, 64, 8]} />
+                  <meshBasicMaterial visible={false} />
+                </mesh>
+                <lineSegments>
+                  <edgesGeometry
+                    args={[new TorusKnotGeometry(0.3, 0.1, 64, 8)]}
+                  />
+                  <lineBasicMaterial color="black" />
+                </lineSegments>
+              </group>
+            ) : (
+              <mesh position={ghostPosition}>
+                <torusKnotGeometry args={[0.3, 0.1, 64, 8]} />
+                <meshStandardMaterial
+                  color="orange"
+                  transparent
+                  opacity={0.5}
+                />
+              </mesh>
+            ))}
+
+          {primitive === "text" &&
+            (isTechnicalDrawing ? (
+              <group position={ghostPosition}>
+                <mesh visible={false}>
+                  <boxGeometry args={[1, 0.5, 0.1]} />
+                  <meshBasicMaterial visible={false} />
+                </mesh>
+                <lineSegments>
+                  <edgesGeometry args={[new BoxGeometry(1, 0.5, 0.1)]} />
+                  <lineBasicMaterial color="black" />
+                </lineSegments>
+                <DreiText
+                  fontSize={0.3}
+                  color="black"
+                  maxWidth={100}
+                  lineHeight={1}
+                  textAlign="center"
+                  anchorX="center"
+                  anchorY="middle"
+                >
+                  Text
+                </DreiText>
+              </group>
+            ) : (
+              <group position={ghostPosition}>
+                <DreiText
+                  fontSize={0.5}
+                  color="orange"
+                  maxWidth={100}
+                  lineHeight={1}
+                  textAlign="center"
+                  anchorX="center"
+                  anchorY="middle"
+                >
+                  Text
+                </DreiText>
+              </group>
+            ))}
+
           {primitive === "light" && (
             <pointLight
               position={[ghostPosition.x, ghostPosition.y, ghostPosition.z]}

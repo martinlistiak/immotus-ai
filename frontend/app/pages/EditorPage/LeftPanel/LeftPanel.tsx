@@ -39,7 +39,7 @@ export const LeftPanel = () => {
         setActiveTab={(tab) => setActiveTab(tab as LeftPanelTabs)}
       />
       <div className="flex-1 h-full relative">
-        <div className="absolute inset-0 overflow-y-auto">
+        <div className="absolute inset-0 overflow-y-auto no-scrollbar">
           {activeTab === LeftPanelTabs.Scene && <ObjectInspector />}
           {activeTab === LeftPanelTabs.Materials && <MaterialsInspector />}
           {activeTab === LeftPanelTabs.Library && <div>Library</div>}

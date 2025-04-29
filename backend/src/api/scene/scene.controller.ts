@@ -36,6 +36,7 @@ export class SceneController {
 
   @Delete(':name')
   deleteScene(@Param('name') name: string) {
+    console.log('deleteScene', name);
     return this.sceneService.deleteScene({ name });
   }
 }
