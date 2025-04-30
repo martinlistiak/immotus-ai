@@ -1,10 +1,12 @@
 import { Card } from "app/components/Card";
 import { ObjectInspector } from "./ObjectInspector/ObjectInspector";
-import { BsArrowLeft } from "react-icons/bs";
-import { useSceneContext } from "../Scene/Scene.context";
+import { BsArrowLeft, BsThreeDotsVertical } from "react-icons/bs";
+import { useSceneContext, useSceneExportContext } from "../Scene/Scene.context";
 import { Tabs } from "app/components/Tabs";
 import { useEffect, useState } from "react";
 import { MaterialsInspector } from "./MaterialsInspector/MaterialsInspector";
+import { Dropdown } from "app/components/Dropdown";
+import cn from "classnames";
 enum LeftPanelTabs {
   Scene = "Scene",
   Materials = "Materials",
@@ -18,6 +20,7 @@ export const LeftPanel = () => {
     isSceneSelectionOpen,
     setIsSceneSelectionOpen,
   } = useSceneContext();
+  const { exportScene } = useSceneExportContext();
   const [sceneName, setSceneName] = useState(scene?.name);
   const [activeTab, setActiveTab] = useState(LeftPanelTabs.Scene);
 
@@ -63,6 +66,41 @@ export const LeftPanel = () => {
             });
           }}
         />
+        <Dropdown
+          items={[
+            <div
+              key="export-glb"
+              onClick={() => exportScene("glb")}
+              className={cn(
+                "w-fit h-8 text-xs px-2 hover:bg-[rgba(255,255,255,0.05)] flex items-center justify-center text-white cursor-pointer rounded-sm"
+              )}
+            >
+              Export GLB
+            </div>,
+            <div
+              key="export-gltf"
+              onClick={() => exportScene("gltf")}
+              className={cn(
+                "w-fit h-8 text-xs px-2 hover:bg-[rgba(255,255,255,0.05)] flex items-center justify-center text-white cursor-pointer rounded-sm"
+              )}
+            >
+              Export GLTF
+            </div>,
+            <div
+              key="export-obj"
+              onClick={() => exportScene("obj")}
+              className={cn(
+                "w-fit h-8 text-xs px-2 hover:bg-[rgba(255,255,255,0.05)] flex items-center justify-center text-white cursor-pointer rounded-sm"
+              )}
+            >
+              Export OBJ
+            </div>,
+          ]}
+        >
+          <div className="text-sm text-gray-400 cursor-pointer hover:text-gray-200">
+            <BsThreeDotsVertical className="w-[14px] h-[14px]" />
+          </div>
+        </Dropdown>
       </div>
       <Tabs
         tabs={[

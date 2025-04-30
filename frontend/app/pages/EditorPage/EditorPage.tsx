@@ -4,6 +4,7 @@ import {
   SceneContextProvider,
   SceneDragAndDropContextProvider,
   SceneHoverContextProvider,
+  SceneExportContextProvider,
 } from "./Scene/Scene.context";
 import { RightPanel } from "./RightPanel/RightPanel";
 import { ConversationContextProvider } from "app/contexts/conversation.context";
@@ -14,13 +15,15 @@ export const EditorPage = () => {
     <SceneContextProvider>
       <SceneHoverContextProvider>
         <SceneDragAndDropContextProvider>
-          <ConversationContextProvider>
-            <Scene />
-            <LeftPanel />
-            <Toolbar />
-            <RightPanel />
-            <SceneSelection />
-          </ConversationContextProvider>
+          <SceneExportContextProvider>
+            <ConversationContextProvider>
+              <Scene />
+              <LeftPanel />
+              <Toolbar />
+              <RightPanel />
+              <SceneSelection />
+            </ConversationContextProvider>
+          </SceneExportContextProvider>
         </SceneDragAndDropContextProvider>
       </SceneHoverContextProvider>
     </SceneContextProvider>

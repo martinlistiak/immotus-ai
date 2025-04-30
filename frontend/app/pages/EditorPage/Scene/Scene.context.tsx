@@ -11,6 +11,11 @@ import {
   type SceneTool,
   type ObjectAttributes,
   CameraType,
+  type BoxAttributes,
+  type SphereAttributes,
+  type PlaneAttributes,
+  type CylinderAttributes,
+  type LightAttributes,
 } from "app/types/scene-ast";
 import {
   createContext,
@@ -21,6 +26,7 @@ import {
   useRef,
   useState,
 } from "react";
+import * as THREE from "three";
 
 export const SceneContext = createContext({
   scene: null as SceneType | null,
@@ -381,6 +387,240 @@ export const useSceneDragAndDropContext = () => {
   if (!context) {
     throw new Error(
       "useSceneDragAndDropContext must be used within a SceneDragAndDropContextProvider"
+    );
+  }
+  return context;
+};
+
+export const SceneExportContext = createContext({
+  exportScene: (_format: "glb" | "gltf" | "obj") => {},
+});
+
+export const SceneExportContextProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const { scene } = useSceneContext();
+
+  const exportScene = (format: "glb" | "gltf" | "obj") => {
+    if (!scene) return;
+
+    // Dynamically import Three.js and exporters
+    Promise.all([
+      import("three"),
+      import("three/examples/jsm/exporters/GLTFExporter.js"),
+      import("three/examples/jsm/exporters/OBJExporter.js"),
+    ])
+      .then(([THREE, GLTFExporterModule, OBJExporterModule]) => {
+        const { GLTFExporter } = GLTFExporterModule;
+        const { OBJExporter } = OBJExporterModule;
+
+        // Create a new Three.js scene
+        const threeScene = new THREE.Scene();
+
+        // Process all objects in our scene
+        scene.objects.forEach((object) => {
+          // Skip if no valid type
+          if (!object.type || !object.attributes) return;
+
+          try {
+            let threeMesh;
+
+            // Create appropriate Three.js objects based on our scene objects
+            switch (object.type) {
+              case "box":
+                const boxGeometry = new THREE.BoxGeometry(
+                  object.attributes.scale.x,
+                  object.attributes.scale.y,
+                  object.attributes.scale.z
+                );
+                const boxMaterial = new THREE.MeshStandardMaterial({
+                  color:
+                    (object.attributes as any).material?.color || "#ffffff",
+                  roughness:
+                    (object.attributes as any).material?.roughness || 0.5,
+                  metalness:
+                    (object.attributes as any).material?.metalness || 0.2,
+                });
+                threeMesh = new THREE.Mesh(boxGeometry, boxMaterial);
+                break;
+
+              case "sphere":
+                const sphereAttr = object.attributes as any;
+                const sphereGeometry = new THREE.SphereGeometry(
+                  sphereAttr.radius || 1,
+                  32,
+                  16
+                );
+                const sphereMaterial = new THREE.MeshStandardMaterial({
+                  color: sphereAttr.material?.color || "#ffffff",
+                  roughness: sphereAttr.material?.roughness || 0.5,
+                  metalness: sphereAttr.material?.metalness || 0.2,
+                });
+                threeMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
+                break;
+
+              case "plane":
+                const planeAttr = object.attributes as any;
+                const planeGeometry = new THREE.PlaneGeometry(
+                  planeAttr.width || 1,
+                  planeAttr.height || 1
+                );
+                const planeMaterial = new THREE.MeshStandardMaterial({
+                  color: planeAttr.material?.color || "#ffffff",
+                  roughness: planeAttr.material?.roughness || 0.5,
+                  metalness: planeAttr.material?.metalness || 0.2,
+                });
+                threeMesh = new THREE.Mesh(planeGeometry, planeMaterial);
+                break;
+
+              case "cylinder":
+                const cylinderAttr = object.attributes as any;
+                const cylinderGeometry = new THREE.CylinderGeometry(
+                  cylinderAttr.radiusTop || 1,
+                  cylinderAttr.radiusBottom || 1,
+                  cylinderAttr.height || 1,
+                  cylinderAttr.radialSegments || 32
+                );
+                const cylinderMaterial = new THREE.MeshStandardMaterial({
+                  color: cylinderAttr.material?.color || "#ffffff",
+                  roughness: cylinderAttr.material?.roughness || 0.5,
+                  metalness: cylinderAttr.material?.metalness || 0.2,
+                });
+                threeMesh = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
+                break;
+
+              case "light":
+                const lightAttr = object.attributes as any;
+                threeMesh = new THREE.PointLight(
+                  lightAttr.color || "#ffffff",
+                  lightAttr.intensity || 1,
+                  lightAttr.distance || 0,
+                  lightAttr.decay || 2
+                );
+                break;
+
+              // More cases can be added for other object types
+
+              default:
+                // Skip unknown types
+                return;
+            }
+
+            if (threeMesh) {
+              // Set common properties
+              threeMesh.position.set(
+                object.attributes.position.x,
+                object.attributes.position.y,
+                object.attributes.position.z
+              );
+              threeMesh.rotation.set(
+                object.attributes.rotation.x,
+                object.attributes.rotation.y,
+                object.attributes.rotation.z
+              );
+
+              // Only set scale for non-light objects
+              if (object.type !== "light") {
+                threeMesh.scale.set(
+                  object.attributes.scale.x,
+                  object.attributes.scale.y,
+                  object.attributes.scale.z
+                );
+              }
+
+              // Set name
+              threeMesh.name =
+                object.attributes.name || `${object.type}_${object.id}`;
+
+              // Add to scene
+              threeScene.add(threeMesh);
+            }
+          } catch (err) {
+            console.error(`Error processing object ${object.id}:`, err);
+          }
+        });
+
+        // Handle export based on format
+        try {
+          switch (format) {
+            case "glb":
+            case "gltf":
+              const gltfExporter = new GLTFExporter();
+              const gltfOptions = {
+                binary: format === "glb",
+                trs: true,
+                onlyVisible: true,
+              };
+
+              gltfExporter.parse(
+                threeScene,
+                (result) => {
+                  let blob;
+
+                  if (format === "glb") {
+                    blob = new Blob([result as ArrayBuffer], {
+                      type: "application/octet-stream",
+                    });
+                  } else {
+                    blob = new Blob([JSON.stringify(result)], {
+                      type: "application/json",
+                    });
+                  }
+
+                  // Create download link
+                  const link = document.createElement("a");
+                  link.href = URL.createObjectURL(blob);
+                  link.download = `${scene.name}.${format}`;
+                  link.click();
+
+                  // Clean up
+                  URL.revokeObjectURL(link.href);
+                },
+                (error) => {
+                  console.error("Error exporting scene:", error);
+                },
+                gltfOptions
+              );
+              break;
+
+            case "obj":
+              const objExporter = new OBJExporter();
+              const result = objExporter.parse(threeScene);
+
+              // Download as OBJ file
+              const blob = new Blob([result], { type: "text/plain" });
+              const link = document.createElement("a");
+              link.href = URL.createObjectURL(blob);
+              link.download = `${scene.name}.obj`;
+              link.click();
+
+              // Clean up
+              URL.revokeObjectURL(link.href);
+              break;
+          }
+        } catch (err) {
+          console.error(`Error exporting as ${format}:`, err);
+        }
+      })
+      .catch((err) => {
+        console.error("Error loading exporters:", err);
+      });
+  };
+
+  return (
+    <SceneExportContext.Provider value={{ exportScene }}>
+      {children}
+    </SceneExportContext.Provider>
+  );
+};
+
+export const useSceneExportContext = () => {
+  const context = useContext(SceneExportContext);
+  if (!context) {
+    throw new Error(
+      "useSceneExportContext must be used within a SceneExportContextProvider"
     );
   }
   return context;

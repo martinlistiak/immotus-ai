@@ -220,6 +220,167 @@ export const CuttingPlan = ({
     };
   };
 
+  // Split a free rectangle after an item is placed
+  const splitFreeRectangle = (
+    rect: FreeRectangle,
+    item: PlacedItem,
+    freeRects: FreeRectangle[]
+  ): void => {
+    // Remove the original rectangle
+    const index = freeRects.indexOf(rect);
+    if (index !== -1) {
+      freeRects.splice(index, 1);
+    }
+
+    // Create up to four new rectangles from the leftover space
+
+    // Right of the item
+    if (item.x + item.width < rect.x + rect.width) {
+      freeRects.push({
+        x: item.x + item.width,
+        y: rect.y,
+        width: rect.x + rect.width - (item.x + item.width),
+        height: rect.height,
+      });
+    }
+
+    // Below the item
+    if (item.y + item.height < rect.y + rect.height) {
+      freeRects.push({
+        x: rect.x,
+        y: item.y + item.height,
+        width: rect.width,
+        height: rect.y + rect.height - (item.y + item.height),
+      });
+    }
+
+    // Left of the item
+    if (item.x > rect.x) {
+      freeRects.push({
+        x: rect.x,
+        y: rect.y,
+        width: item.x - rect.x,
+        height: rect.height,
+      });
+    }
+
+    // Above the item
+    if (item.y > rect.y) {
+      freeRects.push({
+        x: rect.x,
+        y: rect.y,
+        width: rect.width,
+        height: item.y - rect.y,
+      });
+    }
+  };
+
+  // Remove redundant free rectangles (those that are fully contained within others)
+  const pruneFreeRectangles = (freeRects: FreeRectangle[]): void => {
+    // First, check for intersections and split overlapping rectangles
+    for (let i = 0; i < freeRects.length; i++) {
+      for (let j = i + 1; j < freeRects.length; j++) {
+        if (rectanglesIntersect(freeRects[i], freeRects[j])) {
+          // Instead of complicated splitting, we'll just ensure they don't overlap
+          // by adjusting dimensions - this is simpler but may be less optimal
+          if (
+            freeRects[i].x < freeRects[j].x &&
+            freeRects[i].x + freeRects[i].width > freeRects[j].x
+          ) {
+            // Adjust width of rect i to avoid overlap
+            freeRects[i].width = freeRects[j].x - freeRects[i].x;
+          } else if (
+            freeRects[i].y < freeRects[j].y &&
+            freeRects[i].y + freeRects[i].height > freeRects[j].y
+          ) {
+            // Adjust height of rect i to avoid overlap
+            freeRects[i].height = freeRects[j].y - freeRects[i].y;
+          }
+        }
+      }
+    }
+
+    // Then remove rectangles that are contained within others as before
+    for (let i = 0; i < freeRects.length; i++) {
+      for (let j = i + 1; j < freeRects.length; j++) {
+        // Skip if either rectangle has zero dimensions after adjustments
+        if (freeRects[i].width <= 0 || freeRects[i].height <= 0) {
+          freeRects.splice(i, 1);
+          i--;
+          break;
+        }
+        if (freeRects[j].width <= 0 || freeRects[j].height <= 0) {
+          freeRects.splice(j, 1);
+          j--;
+          continue;
+        }
+
+        // Check if rect i is contained in rect j
+        if (
+          freeRects[i].x >= freeRects[j].x &&
+          freeRects[i].y >= freeRects[j].y &&
+          freeRects[i].x + freeRects[i].width <=
+            freeRects[j].x + freeRects[j].width &&
+          freeRects[i].y + freeRects[i].height <=
+            freeRects[j].y + freeRects[j].height
+        ) {
+          // Remove rect i
+          freeRects.splice(i, 1);
+          i--;
+          break;
+        }
+
+        // Check if rect j is contained in rect i
+        if (
+          freeRects[j].x >= freeRects[i].x &&
+          freeRects[j].y >= freeRects[i].y &&
+          freeRects[j].x + freeRects[j].width <=
+            freeRects[i].x + freeRects[i].width &&
+          freeRects[j].y + freeRects[j].height <=
+            freeRects[i].y + freeRects[i].height
+        ) {
+          // Remove rect j
+          freeRects.splice(j, 1);
+          j--;
+        }
+      }
+    }
+  };
+
+  // Check if two rectangles intersect
+  const rectanglesIntersect = (
+    r1: FreeRectangle,
+    r2: FreeRectangle
+  ): boolean => {
+    return !(
+      r1.x + r1.width <= r2.x ||
+      r2.x + r2.width <= r1.x ||
+      r1.y + r1.height <= r2.y ||
+      r2.y + r2.height <= r1.y
+    );
+  };
+
+  // Check if an item intersects with any already placed items
+  const intersectsWithPlacedItems = (
+    item: CutItem & Position,
+    placedItems: PlacedItem[]
+  ): boolean => {
+    for (const placedItem of placedItems) {
+      // Check if this item overlaps with a placed item
+      if (
+        !(
+          item.x + item.width <= placedItem.x ||
+          placedItem.x + placedItem.width <= item.x ||
+          item.y + item.height <= placedItem.y ||
+          placedItem.y + placedItem.height <= item.y
+        )
+      ) {
+        return true; // Intersection found
+      }
+    }
+    return false; // No intersections
+  };
+
   // Find the best position for an item using Best Short Side Fit heuristic
   const findPositionForItem = (
     item: CutItem,
@@ -237,6 +398,18 @@ export const CuttingPlan = ({
 
       // Check if the item fits in the rectangle
       if (rect.width >= item.width && rect.height >= item.height) {
+        // Create a potential placement
+        const potentialPlacement = {
+          ...item,
+          x: rect.x,
+          y: rect.y,
+        };
+
+        // Skip if this placement would intersect with already placed items
+        if (intersectsWithPlacedItems(potentialPlacement, placedItems)) {
+          continue;
+        }
+
         // Calculate score (smaller is better)
         // Best Short Side Fit: place the item into the rectangle that leaves the smallest leftover side
         const leftoverWidth = rect.width - item.width;
@@ -272,77 +445,6 @@ export const CuttingPlan = ({
     pruneFreeRectangles(freeRects);
 
     return true;
-  };
-
-  // Split a free rectangle after an item is placed
-  const splitFreeRectangle = (
-    rect: FreeRectangle,
-    item: PlacedItem,
-    freeRects: FreeRectangle[]
-  ): void => {
-    // Remove the original rectangle
-    const index = freeRects.indexOf(rect);
-    if (index !== -1) {
-      freeRects.splice(index, 1);
-    }
-
-    // Create up to two new rectangles from the leftover space
-
-    // Right of the item
-    if (item.x + item.width < rect.x + rect.width) {
-      freeRects.push({
-        x: item.x + item.width,
-        y: rect.y,
-        width: rect.width - (item.x + item.width - rect.x),
-        height: rect.height,
-      });
-    }
-
-    // Below the item
-    if (item.y + item.height < rect.y + rect.height) {
-      freeRects.push({
-        x: rect.x,
-        y: item.y + item.height,
-        width: rect.width,
-        height: rect.height - (item.y + item.height - rect.y),
-      });
-    }
-  };
-
-  // Remove redundant free rectangles (those that are fully contained within others)
-  const pruneFreeRectangles = (freeRects: FreeRectangle[]): void => {
-    for (let i = 0; i < freeRects.length; i++) {
-      for (let j = i + 1; j < freeRects.length; j++) {
-        // Check if rect i is contained in rect j
-        if (
-          freeRects[i].x >= freeRects[j].x &&
-          freeRects[i].y >= freeRects[j].y &&
-          freeRects[i].x + freeRects[i].width <=
-            freeRects[j].x + freeRects[j].width &&
-          freeRects[i].y + freeRects[i].height <=
-            freeRects[j].y + freeRects[j].height
-        ) {
-          // Remove rect i
-          freeRects.splice(i, 1);
-          i--;
-          break;
-        }
-
-        // Check if rect j is contained in rect i
-        if (
-          freeRects[j].x >= freeRects[i].x &&
-          freeRects[j].y >= freeRects[i].y &&
-          freeRects[j].x + freeRects[j].width <=
-            freeRects[i].x + freeRects[i].width &&
-          freeRects[j].y + freeRects[j].height <=
-            freeRects[i].y + freeRects[i].height
-        ) {
-          // Remove rect j
-          freeRects.splice(j, 1);
-          j--;
-        }
-      }
-    }
   };
 
   // Draw the cutting plan on the canvas
@@ -560,6 +662,17 @@ export const CuttingPlan = ({
     }
   }, [material]);
 
+  //   const piecesThatDidNotFit = getCutItems().filter(
+  //     (item) =>
+  //       (item.width > stockPanelWidth || item.height > stockPanelWidth) &&
+  //       (item.height > (stockPanelLength || 100000) ||
+  //         item.width > (stockPanelLength || 100000))
+  //   );
+
+  const piecesThatDidNotFit = getCutItems().filter(
+    (item) => !cuttingPlan.find((planItem) => planItem.id === item.id)
+  );
+
   return (
     <Modal
       isOpen={isOpen}
@@ -663,6 +776,16 @@ export const CuttingPlan = ({
             <span className="font-medium">Legend:</span> Red dashed lines
             indicate cut lines.
           </div>
+          {piecesThatDidNotFit.length > 0 && (
+            <div className="text-xs font-bold text-red-500">
+              <span className="font-medium">
+                Items that did not fit ({piecesThatDidNotFit.length}):
+              </span>{" "}
+              {piecesThatDidNotFit
+                .map((item) => `${item.id}, (${item.width}x${item.height}mm)`)
+                .join(", ")}
+            </div>
+          )}
           <div className="text-xs text-gray-500">
             <span className="font-medium">Items:</span> {cuttingPlan.length}{" "}
             pieces
