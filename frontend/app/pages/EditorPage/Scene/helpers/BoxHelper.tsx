@@ -3,16 +3,7 @@ import { useMemo } from "react";
 import { useThree } from "@react-three/fiber";
 import { Mesh, Object3D, Scene } from "three";
 import { useSceneHoverContext } from "../Scene.context";
-
-function findObjectByUserData(scene: Scene, value: string) {
-  let element: Object3D | undefined;
-  scene.traverse((child) => {
-    if (child.userData?.id === value) {
-      element = child;
-    }
-  });
-  return element;
-}
+import { findObjectByUserData } from "app/utils/utils";
 
 export function BoxHelper() {
   const { scene: threeScene } = useThree();

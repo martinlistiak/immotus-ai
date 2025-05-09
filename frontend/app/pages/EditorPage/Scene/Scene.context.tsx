@@ -67,7 +67,7 @@ export const SceneContextProvider = ({
   );
   const [isSceneSelectionOpen, setIsSceneSelectionOpen] = useState(false);
   const [scene, dispatchUnwrapped] = useSceneReducer();
-  const [activeTool, setActiveTool] = useState<SceneTool>("move");
+  const [activeTool, setActiveTool] = useState<SceneTool>("select");
   const [isLoading, setIsLoading] = useState(true);
   const [history, setHistory] = useState<SceneType[]>([]);
   const [historyIndex, setHistoryIndex] = useState(0);
@@ -85,6 +85,15 @@ export const SceneContextProvider = ({
 
   const sceneRef = useRef<SceneType | null>(null);
   sceneRef.current = scene;
+
+  // this is for updating attributes in the attribute inspector when the scene is updated
+  useEffect(() => {
+    if (scene) {
+      if (selectedObjects.length !== 0) {
+        handleSetSelectedObjects(selectedObjects.map((object) => object.id));
+      }
+    }
+  }, [scene]);
 
   useEffect(() => {
     if (lastSceneUsed) {
@@ -394,6 +403,8 @@ export const useSceneDragAndDropContext = () => {
 
 export const SceneExportContext = createContext({
   exportScene: (_format: "glb" | "gltf" | "obj") => {},
+  threeScene: null as THREE.Scene | null,
+  setThreeScene: (_scene: THREE.Scene | null) => {},
 });
 
 export const SceneExportContextProvider = ({
@@ -402,8 +413,158 @@ export const SceneExportContextProvider = ({
   children: React.ReactNode;
 }) => {
   const { scene } = useSceneContext();
-
+  const [threeScene, setThreeScene] = useState<THREE.Scene | null>(null);
   const exportScene = (format: "glb" | "gltf" | "obj") => {
+    if (!scene) return;
+
+    // If we have a Three.js scene reference, use it directly instead of recreating
+    if (threeScene) {
+      Promise.all([
+        import("three"),
+        import("three/examples/jsm/exporters/GLTFExporter.js"),
+        import("three/examples/jsm/exporters/OBJExporter.js"),
+        import("three/examples/jsm/utils/SceneUtils.js"),
+      ])
+        .then(
+          ([
+            THREE,
+            GLTFExporterModule,
+            OBJExporterModule,
+            SceneUtilsModule,
+          ]) => {
+            const { GLTFExporter } = GLTFExporterModule;
+            const { OBJExporter } = OBJExporterModule;
+
+            // Make a clone of the scene to avoid modifying the original
+            const sceneToExport = new THREE.Scene();
+
+            // Copy properties from the original scene
+            sceneToExport.name = threeScene.name;
+            sceneToExport.background = threeScene.background;
+
+            // Filter out any helper objects, cameras, and controls that shouldn't be exported
+            threeScene.children.forEach((child) => {
+              // Keep only meshes, lights, and groups, filter out helpers, cameras, etc.
+              const isExportable =
+                child.type === "Mesh" ||
+                child.type === "Group" ||
+                child.type.includes("Light") ||
+                // Include the actual scene object if it exists
+                child.type === "Scene" ||
+                child.name === scene.name;
+
+              if (isExportable) {
+                // Clone the object and add it to our export scene
+                try {
+                  // Create a deep clone of the object
+                  const clonedObject = child.clone();
+
+                  // Clone any meshes/materials recursively
+                  if (child.type === "Mesh") {
+                    const originalMesh = child as THREE.Mesh;
+                    const clonedMesh = clonedObject as THREE.Mesh;
+
+                    if (originalMesh.geometry) {
+                      clonedMesh.geometry = originalMesh.geometry.clone();
+                    }
+
+                    if (originalMesh.material) {
+                      if (Array.isArray(originalMesh.material)) {
+                        clonedMesh.material = originalMesh.material.map((m) =>
+                          m.clone()
+                        );
+                      } else {
+                        clonedMesh.material = originalMesh.material.clone();
+                      }
+                    }
+                  }
+
+                  sceneToExport.add(clonedObject);
+                } catch (error) {
+                  console.error("Error cloning object:", error);
+                }
+              }
+            });
+
+            try {
+              switch (format) {
+                case "glb":
+                case "gltf":
+                  const gltfExporter = new GLTFExporter();
+                  const gltfOptions = {
+                    binary: format === "glb",
+                    trs: true,
+                    onlyVisible: true,
+                  };
+
+                  gltfExporter.parse(
+                    sceneToExport,
+                    (result) => {
+                      let blob;
+
+                      if (format === "glb") {
+                        blob = new Blob([result as ArrayBuffer], {
+                          type: "application/octet-stream",
+                        });
+                      } else {
+                        blob = new Blob([JSON.stringify(result)], {
+                          type: "application/json",
+                        });
+                      }
+
+                      // Create download link
+                      const link = document.createElement("a");
+                      link.href = URL.createObjectURL(blob);
+                      link.download = `${scene.name}.${format}`;
+                      link.click();
+
+                      // Clean up
+                      URL.revokeObjectURL(link.href);
+                    },
+                    (error) => {
+                      console.error("Error exporting scene:", error);
+                      // Fall back to the old method if direct export fails
+                      fallbackExport(format);
+                    },
+                    gltfOptions
+                  );
+                  break;
+
+                case "obj":
+                  const objExporter = new OBJExporter();
+                  const result = objExporter.parse(sceneToExport);
+
+                  // Download as OBJ file
+                  const blob = new Blob([result], { type: "text/plain" });
+                  const link = document.createElement("a");
+                  link.href = URL.createObjectURL(blob);
+                  link.download = `${scene.name}.obj`;
+                  link.click();
+
+                  // Clean up
+                  URL.revokeObjectURL(link.href);
+                  break;
+              }
+            } catch (err) {
+              console.error(`Error exporting as ${format}:`, err);
+              // Fall back to the old method if direct export fails
+              fallbackExport(format);
+            }
+          }
+        )
+        .catch((err) => {
+          console.error("Error loading exporters:", err);
+          // Fall back to the old method if loading fails
+          fallbackExport(format);
+        });
+    } else {
+      // Use the original implementation as a fallback
+      fallbackExport(format);
+    }
+  };
+
+  // The original export implementation as a fallback
+  const fallbackExport = (format: "glb" | "gltf" | "obj") => {
     if (!scene) return;
 
     // Dynamically import Three.js and exporters
@@ -491,6 +652,37 @@ export const SceneExportContextProvider = ({
                 threeMesh = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
                 break;
 
+              case "cone":
+                const coneAttr = object.attributes as any;
+                const coneGeometry = new THREE.ConeGeometry(
+                  coneAttr.radius || 1,
+                  coneAttr.height || 1,
+                  coneAttr.radialSegments || 32
+                );
+                const coneMaterial = new THREE.MeshStandardMaterial({
+                  color: coneAttr.material?.color || "#ffffff",
+                  roughness: coneAttr.material?.roughness || 0.5,
+                  metalness: coneAttr.material?.metalness || 0.2,
+                });
+                threeMesh = new THREE.Mesh(coneGeometry, coneMaterial);
+                break;
+
+              case "torus":
+                const torusAttr = object.attributes as any;
+                const torusGeometry = new THREE.TorusGeometry(
+                  torusAttr.radius || 1,
+                  torusAttr.tube || 0.4,
+                  torusAttr.radialSegments || 16,
+                  torusAttr.tubularSegments || 32
+                );
+                const torusMaterial = new THREE.MeshStandardMaterial({
+                  color: torusAttr.material?.color || "#ffffff",
+                  roughness: torusAttr.material?.roughness || 0.5,
+                  metalness: torusAttr.material?.metalness || 0.2,
+                });
+                threeMesh = new THREE.Mesh(torusGeometry, torusMaterial);
+                break;
+
               case "light":
                 const lightAttr = object.attributes as any;
                 threeMesh = new THREE.PointLight(
@@ -500,8 +692,6 @@ export const SceneExportContextProvider = ({
                   lightAttr.decay || 2
                 );
                 break;
-
-              // More cases can be added for other object types
 
               default:
                 // Skip unknown types
@@ -610,7 +800,9 @@ export const SceneExportContextProvider = ({
   };
 
   return (
-    <SceneExportContext.Provider value={{ exportScene }}>
+    <SceneExportContext.Provider
+      value={{ exportScene, threeScene, setThreeScene }}
+    >
       {children}
     </SceneExportContext.Provider>
   );

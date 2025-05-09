@@ -6,24 +6,11 @@ import {
   OrthographicCamera,
 } from "@react-three/drei";
 import { Canvas, useThree } from "@react-three/fiber";
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { useEffect, useState, useContext } from "react";
+import { Color, Vector3 } from "three";
+import { useSceneContext, SceneExportContext } from "./Scene.context";
 import {
-  Color,
-  Vector3,
-  EdgesGeometry,
-  LineBasicMaterial,
-  LineSegments,
-  Mesh,
-} from "three";
-
-import { useSceneContext } from "./Scene.context";
-import { Box } from "./objects/Box";
-import { Light } from "./objects/Light";
-import {
-  type AbstractSyntaxTree,
-  type BoxAttributes,
   type LightAttributes,
-  type MeshAttributes,
   type SphereAttributes,
   type PlaneAttributes,
   type CylinderAttributes,
@@ -32,39 +19,43 @@ import {
   type CircleAttributes,
   type RingAttributes,
   type DodecahedronAttributes,
-  type IcosahedronAttributes,
-  type OctahedronAttributes,
-  type TetrahedronAttributes,
   type TorusKnotAttributes,
   type TextAttributes,
   type SceneType,
   type ObjectType,
   CameraType,
 } from "app/types/scene-ast";
-import { MeshComponent } from "./objects/Mesh";
-import { Sphere } from "./objects/Sphere";
-import { GroupComponent } from "./objects/Group";
-import { Plane } from "./objects/Plane";
-import { Cylinder } from "./objects/Cylinder";
-import { Cone } from "./objects/Cone";
-import { Torus } from "./objects/Torus";
-import { Circle } from "./objects/Circle";
-import { Ring } from "./objects/Ring";
-import { Dodecahedron } from "./objects/Dodecahedron";
-import { Icosahedron } from "./objects/Icosahedron";
-import { Octahedron } from "./objects/Octahedron";
-import { Tetrahedron } from "./objects/Tetrahedron";
-import { TorusKnot } from "./objects/TorusKnot";
-import { Text } from "./objects/Text";
 import { PrimitivePlacer } from "./objects/PrimitivePlacer";
 import { BoxHelper } from "./helpers/BoxHelper";
 import { TechnicalDrawingView } from "./helpers/TechnicalDrawingsView";
+import { SceneObject } from "./objects/SceneObject";
 
 const SceneEnvironment = () => {
   return <Environment preset="studio" background blur={1} />;
 };
 
 // A specialized component for technical drawing mode
+
+// Component to capture the Three.js scene and make it available for export
+const SceneCapture = () => {
+  const { scene: threeScene } = useThree();
+  const { setThreeScene } = useContext(SceneExportContext);
+
+  useEffect(() => {
+    if (threeScene && setThreeScene) {
+      setThreeScene(threeScene);
+    }
+
+    // Clean up
+    return () => {
+      if (setThreeScene) {
+        setThreeScene(null);
+      }
+    };
+  }, [threeScene, setThreeScene]);
+
+  return null;
+};
 
 export function Scene({ ...props }) {
   const {
@@ -75,6 +66,7 @@ export function Scene({ ...props }) {
     activeCamera,
     dispatchScene,
     hiddenObjectIds,
+    selectedObjects,
   } = useSceneContext();
   const [ghostPosition, setGhostPosition] = useState<Vector3 | null>(null);
 
@@ -210,21 +202,27 @@ export function Scene({ ...props }) {
     activeTool === "text" ||
     activeTool === "light";
 
-  // Component to handle primitive placement interaction
+  const handlePointerDown = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    if (isActiveTool && ghostPosition) {
+      // Place the primitive at the ghost position
+      handlePlacePrimitive(ghostPosition);
+      event.stopPropagation();
+    } else if (activeTool === "move" || activeTool === "select") {
+      // For Canvas clicks, check if we're clicking canvas background
+      const eventTarget = event as any;
+
+      // Only deselect if clicking on canvas background (not object or pivot control)
+      if (
+        !eventTarget.object ||
+        eventTarget.object.userData?.type !== "sceneObject"
+      ) {
+        setSelectedObjects([]);
+      }
+    }
+  };
+
   return (
-    <div
-      id="scene"
-      className="w-[100vw] h-[100vh]"
-      onPointerDown={(event) => {
-        if (isActiveTool && ghostPosition) {
-          // Place the primitive at the ghost position
-          handlePlacePrimitive(ghostPosition);
-          event.stopPropagation();
-        } else if (activeTool === "move" || activeTool === "select") {
-          setSelectedObjects([]);
-        }
-      }}
-    >
+    <div id="scene" className="w-[100vw] h-[100vh]">
       <Canvas
         className="w-full h-full"
         dpr={[1, 1.5]}
@@ -236,6 +234,8 @@ export function Scene({ ...props }) {
         camera={{ position: [0, 4, 10], fov: 25, near: 0.3, far: 1000 }}
         shadows
       >
+        <SceneCapture />
+
         <OrbitControls
           makeDefault
           minPolarAngle={0}
@@ -245,7 +245,6 @@ export function Scene({ ...props }) {
           enableDamping={true}
           dampingFactor={0.05}
           zoomSpeed={0.2}
-          enabled={activeTool !== "box" && activeTool !== "light"} // Disable orbit controls when placing a box
         />
 
         {/* Background color - white for technical drawing mode in 2D, dark gray for 3D */}
@@ -295,103 +294,29 @@ export function Scene({ ...props }) {
         )}
 
         <group {...props} dispose={null}>
-          <scene name={scene?.name}>
+          <scene name={scene?.name} onPointerDown={handlePointerDown}>
             {scene?.objects
               .filter((obj) => obj.parentId === null)
               .filter((obj) => !hiddenObjectIds.includes(obj.id))
-              .map((object) => (
-                <Fragment key={object.id}>
-                  {object.type === "box" && (
-                    <Box object={object as AbstractSyntaxTree<BoxAttributes>} />
-                  )}
-                  {object.type === "sphere" && (
-                    <Sphere
-                      object={object as AbstractSyntaxTree<SphereAttributes>}
-                    />
-                  )}
-                  {object.type === "light" && (
-                    <Light
-                      object={object as AbstractSyntaxTree<LightAttributes>}
-                    />
-                  )}
-                  {object.type === "mesh" && (
-                    <MeshComponent
-                      object={object as AbstractSyntaxTree<MeshAttributes>}
-                    />
-                  )}
-                  {object.type === "group" && (
-                    <GroupComponent object={object} />
-                  )}
-                  {object.type === "plane" && (
-                    <Plane
-                      object={object as AbstractSyntaxTree<PlaneAttributes>}
-                    />
-                  )}
-                  {object.type === "cylinder" && (
-                    <Cylinder
-                      object={object as AbstractSyntaxTree<CylinderAttributes>}
-                    />
-                  )}
-                  {object.type === "cone" && (
-                    <Cone
-                      object={object as AbstractSyntaxTree<ConeAttributes>}
-                    />
-                  )}
-                  {object.type === "torus" && (
-                    <Torus
-                      object={object as AbstractSyntaxTree<TorusAttributes>}
-                    />
-                  )}
-                  {object.type === "circle" && (
-                    <Circle
-                      object={object as AbstractSyntaxTree<CircleAttributes>}
-                    />
-                  )}
-                  {object.type === "ring" && (
-                    <Ring
-                      object={object as AbstractSyntaxTree<RingAttributes>}
-                    />
-                  )}
-                  {object.type === "dodecahedron" && (
-                    <Dodecahedron
-                      object={
-                        object as AbstractSyntaxTree<DodecahedronAttributes>
-                      }
-                    />
-                  )}
-                  {object.type === "icosahedron" && (
-                    <Icosahedron
-                      object={
-                        object as AbstractSyntaxTree<IcosahedronAttributes>
-                      }
-                    />
-                  )}
-                  {object.type === "octahedron" && (
-                    <Octahedron
-                      object={
-                        object as AbstractSyntaxTree<OctahedronAttributes>
-                      }
-                    />
-                  )}
-                  {object.type === "tetrahedron" && (
-                    <Tetrahedron
-                      object={
-                        object as AbstractSyntaxTree<TetrahedronAttributes>
-                      }
-                    />
-                  )}
-                  {object.type === "torusknot" && (
-                    <TorusKnot
-                      object={object as AbstractSyntaxTree<TorusKnotAttributes>}
-                    />
-                  )}
-                  {object.type === "text" && (
-                    <Text
-                      object={object as AbstractSyntaxTree<TextAttributes>}
-                    />
-                  )}
-                </Fragment>
-              ))}
+              .map((object) => {
+                const isSelected = selectedObjects.some(
+                  (obj) => obj.id === object.id
+                );
+                return (
+                  // <group
+                  //   userData={{ type: "sceneObject", id: object.id }}
+                  //   key={object.id}
+                  //   onPointerDown={(e) => {
+                  //     e.stopPropagation();
+                  //     // setSelectedObjects([object.id]);
+                  //   }}
+                  // >
+                  //   <PivotControls autoTransform enabled={isSelected}>
+                  <SceneObject object={object} />
+                  // </PivotControls>
+                  // </group>
+                );
+              })}
 
             {/* Only show directional light in 3D mode */}
             {activeCamera === CameraType.THREE_D && (

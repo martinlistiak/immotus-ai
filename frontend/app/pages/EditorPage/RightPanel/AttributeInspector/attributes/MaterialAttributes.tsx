@@ -32,7 +32,7 @@ export const MaterialAttributes = () => {
   }, [selectedObjects]);
 
   const handleInputChange =
-    (kind: "metalness" | "roughness" | "color") =>
+    (kind: "metalness" | "roughness" | "color", skipHistory: boolean = false) =>
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const value = event.target.value;
 
@@ -75,6 +75,7 @@ export const MaterialAttributes = () => {
             objectId: selectedObjects[0].id,
             color: value,
           },
+          skipHistory,
         });
       }
     };
@@ -95,6 +96,8 @@ export const MaterialAttributes = () => {
         handleInputChange("color")({
           target: { value: "#000000" },
         } as React.ChangeEvent<HTMLInputElement>);
+      } else {
+        handleInputChange(kind)(e);
       }
     };
 
@@ -105,7 +108,7 @@ export const MaterialAttributes = () => {
         <div>Color</div>
         <ColorInput
           value={inputValues.color}
-          onChange={handleInputChange("color")}
+          onChange={handleInputChange("color", true)}
           onBlur={validateInputOnBlur("color")}
         />
         <div>Metalness</div>

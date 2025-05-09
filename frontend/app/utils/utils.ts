@@ -1,5 +1,7 @@
 import type { ObjectAttributes } from "app/types/scene-ast";
 import type { AbstractSyntaxTree } from "app/types/scene-ast";
+import type { Scene } from "three";
+import type { Object3D } from "three";
 import { v4 } from "uuid";
 
 export const findChildren = (
@@ -52,4 +54,23 @@ export const duplicateObjectRecursively = (
   const uniqueChildren = new Set([duplicate, ...duplicateChildren]);
   const uniqueChildrenArray = Array.from(uniqueChildren);
   return uniqueChildrenArray;
+};
+
+/**
+ * Check if a color is valid
+ * @param color - The color to check
+ * @returns True if the color is valid, false otherwise
+ */
+export const isValidColor = (color: string) => {
+  return /^#([0-9a-fA-F]{6})$/.test(color);
+};
+
+export const findObjectByUserData = (scene: Scene, value: string) => {
+  let element: Object3D | undefined;
+  scene.traverse((child: Object3D) => {
+    if (child.userData?.id === value) {
+      element = child;
+    }
+  });
+  return element;
 };

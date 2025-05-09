@@ -1,7 +1,12 @@
-import type { SceneType } from "app/types/scene-ast";
+import type {
+  AbstractSyntaxTree,
+  BaseObjectWithMaterialAttributes,
+  ObjectAttributes,
+  SceneType,
+} from "app/types/scene-ast";
 import { duplicateObjectRecursively } from "app/utils/utils";
 import { produce } from "immer";
-import { useEffect, useReducer, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { v4 } from "uuid";
 
 type AddObjectAction = {
@@ -436,14 +441,17 @@ export const sceneReducer = (state: SceneType, action: Action) => {
         }
       });
     case "CHANGE_LIGHT_COLOR":
-      return produce(state, (draft) => {
-        const object = draft.objects.find(
-          (object) => object.id === action.payload.objectId
-        );
-        if (object && "color" in object.attributes) {
-          object.attributes.color = action.payload.color;
-        }
-      });
+      return {
+        ...produce(state, (draft) => {
+          const object = draft.objects.find(
+            (object) => object.id === action.payload.objectId
+          ) as AbstractSyntaxTree<ObjectAttributes>;
+          if (typeof object?.attributes === "object") {
+            // @ts-ignore
+            object.attributes["color"] = action.payload.color;
+          }
+        }),
+      };
     case "CHANGE_LIGHT_INTENSITY":
       return produce(state, (draft) => {
         const object = draft.objects.find(
@@ -586,14 +594,16 @@ export const sceneReducer = (state: SceneType, action: Action) => {
         }
       });
     case "CHANGE_OBJECT_COLOR":
-      return produce(state, (draft) => {
-        const object = draft.objects.find(
-          (object) => object.id === action.payload.objectId
-        );
-        if (object && "material" in object.attributes) {
-          object.attributes.material.color = action.payload.color;
-        }
-      });
+      return {
+        ...produce(state, (draft) => {
+          const object = draft.objects.find(
+            (object) => object.id === action.payload.objectId
+          );
+          if (object && "material" in object.attributes) {
+            object.attributes.material.color = action.payload.color;
+          }
+        }),
+      };
     case "CHANGE_PLANE_PROPERTY":
       return produce(state, (draft) => {
         const object = draft.objects.find(
@@ -742,6 +752,7 @@ let cb: ((state: SceneType) => void) | null = null;
 
 export const useSceneReducer = () => {
   const [scene, dispatch] = useReducer(sceneReducer, initialScene);
+  const lastAction = useRef<Action | null>(null);
 
   useEffect(() => {
     cb && cb(scene);
@@ -750,6 +761,7 @@ export const useSceneReducer = () => {
   return [
     scene,
     (action: Action, callback: typeof cb) => {
+      lastAction.current = action;
       cb = callback;
       dispatch(action);
     },

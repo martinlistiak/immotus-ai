@@ -87,7 +87,7 @@ export class AppService {
     }
 
     // Create a streaming response to handle tool usage
-    const stream = await anthropic.messages.stream({
+    const stream = anthropic.messages.stream({
       model: 'claude-3-7-sonnet-latest',
       max_tokens: 64000,
       temperature: 0.3,
@@ -116,6 +116,7 @@ export class AppService {
     // Handle the streaming response
     try {
       for await (const event of stream) {
+        console.log(event);
         if (event.type === 'content_block_delta') {
           const delta = event.delta;
 

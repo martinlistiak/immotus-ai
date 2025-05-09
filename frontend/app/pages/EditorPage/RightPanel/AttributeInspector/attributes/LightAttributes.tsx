@@ -31,7 +31,10 @@ export const LightAttributes = () => {
   }, [lightObject]);
 
   const handleInputChange =
-    (kind: "color" | "intensity" | "distance" | "decay") =>
+    (
+      kind: "color" | "intensity" | "distance" | "decay",
+      skipHistory: boolean = false
+    ) =>
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const value = event.target.value;
 
@@ -50,6 +53,7 @@ export const LightAttributes = () => {
               objectId: lightObject.id,
               color: value,
             },
+            skipHistory,
           });
           break;
         case "intensity":
@@ -89,7 +93,8 @@ export const LightAttributes = () => {
         <div>Color</div>
         <ColorInput
           value={inputValues.color}
-          onChange={handleInputChange("color")}
+          onChange={handleInputChange("color", true)}
+          onBlur={handleInputChange("color", false)}
         />
         <div>Intensity</div>
         <Input

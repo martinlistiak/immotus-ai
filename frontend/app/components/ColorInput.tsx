@@ -38,6 +38,8 @@ export const ColorInput = ({
             className="z-50"
             color={props.value as string}
             onBlur={(e) => {
+              // @ts-ignore
+              props.onBlur?.({ target: { value: props.value } });
               setIsColorPickerOpen(false);
             }}
             onChange={(color) => {
