@@ -1,0 +1,9 @@
+name: Deploy
+on:
+  push:
+    branches: ["master"]
+jobs:
+  call-webhook:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -X POST "https://captain.cortexserver.fantasy.co/api/v2/user/apps/webhooks/triggerbuild?namespace=captain&token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InRva2VuVmVyc2lvbiI6ImEyYWIzMDQ2LTkzMmQtNDU1ZS04YjNkLTJlNzMwYTgxMzJmNCIsImFwcE5hbWUiOiJzeW50aGV0aWNodW1hbnMiLCJuYW1lc3BhY2UiOiJjYXB0YWluIn0sImlhdCI6MTY5NjU0MDAxM30.8PZJwJoy9ThIAa62w4ZtBkMrSGa21iZZ8g8MR4fJZbE"

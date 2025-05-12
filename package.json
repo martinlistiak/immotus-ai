@@ -8,6 +8,8 @@
     "shared"
   ],
   "scripts": {
-    "dev": "yarn workspaces foreach -A -pvi -j unlimited run dev "
+    "dev": "yarn workspaces foreach -A -pvi -j unlimited run dev",
+    "build": "yarn workspaces foreach -A -pvi -j unlimited run build",
+    "start:prod": "yarn workspaces foreach -A -pvi -j unlimited run start:prod"
   }
 }
