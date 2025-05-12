@@ -21,7 +21,7 @@ import {
   type DodecahedronAttributes,
   type TorusKnotAttributes,
   type TextAttributes,
-  type SceneType,
+  type SceneObjects,
   type ObjectType,
   CameraType,
 } from "app/types/scene-ast";
@@ -72,7 +72,7 @@ export function Scene({ ...props }) {
 
   const handlePlacePrimitive = (position: Vector3) => {
     // Create a new primitive based on active tool
-    let newObject: Partial<SceneType["objects"][number]> = {
+    let newObject: Partial<SceneObjects[number]> = {
       id: uuid(), // Generate unique ID
       type: activeTool as ObjectType,
       parentId: null,
@@ -175,7 +175,7 @@ export function Scene({ ...props }) {
 
     dispatchScene({
       type: "ADD_OBJECT",
-      payload: { object: newObject as SceneType["objects"][number] },
+      payload: { object: newObject as SceneObjects[number] },
     });
 
     setActiveTool("move");
@@ -202,7 +202,7 @@ export function Scene({ ...props }) {
     activeTool === "text" ||
     activeTool === "light";
 
-  const handlePointerDown = (event: React.PointerEvent<HTMLCanvasElement>) => {
+  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     if (isActiveTool && ghostPosition) {
       // Place the primitive at the ghost position
       handlePlacePrimitive(ghostPosition);
@@ -222,7 +222,11 @@ export function Scene({ ...props }) {
   };
 
   return (
-    <div id="scene" className="w-[100vw] h-[100vh]">
+    <div
+      id="scene"
+      className="w-[100vw] h-[100vh]"
+      onPointerDown={handlePointerDown}
+    >
       <Canvas
         className="w-full h-full"
         dpr={[1, 1.5]}
@@ -294,7 +298,7 @@ export function Scene({ ...props }) {
         )}
 
         <group {...props} dispose={null}>
-          <scene name={scene?.name} onPointerDown={handlePointerDown}>
+          <scene name={scene?.name}>
             {scene?.objects
               .filter((obj) => obj.parentId === null)
               .filter((obj) => !hiddenObjectIds.includes(obj.id))
@@ -312,7 +316,7 @@ export function Scene({ ...props }) {
                   //   }}
                   // >
                   //   <PivotControls autoTransform enabled={isSelected}>
-                  <SceneObject object={object} />
+                  <SceneObject key={object.id} object={object} />
                   // </PivotControls>
                   // </group>
                 );

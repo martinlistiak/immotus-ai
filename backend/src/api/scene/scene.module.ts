@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
 import { SceneController } from './scene.controller';
 import { SceneService } from './scene.service';
-import { SceneRepository } from './scene.repository';
+import { sceneProviders } from './scene.providers';
+import { DatabaseModule } from '../../database.module';
+
 @Module({
-  imports: [],
+  imports: [DatabaseModule],
   controllers: [SceneController],
-  providers: [SceneService, SceneRepository],
+  providers: [SceneService, ...sceneProviders],
   exports: [SceneService],
 })
 export class SceneModule {}

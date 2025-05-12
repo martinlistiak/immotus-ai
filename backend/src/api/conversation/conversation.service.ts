@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConversationRepository } from './conversation.repository';
 import { Anthropic } from '@anthropic-ai/sdk';
 
-type ConversationType = Anthropic.Messages.MessageParam[];
+export type ConversationType = Anthropic.Messages.MessageParam[];
 
 @Injectable()
 export class ConversationService {

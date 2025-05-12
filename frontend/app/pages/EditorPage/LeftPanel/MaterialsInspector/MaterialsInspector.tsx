@@ -3,7 +3,7 @@ import { useSceneContext } from "../../Scene/Scene.context";
 import type {
   BoxAttributes,
   ObjectAttributes,
-  SceneType,
+  SceneObjects,
 } from "app/types/scene-ast";
 import type {
   BaseObjectWithMaterialAttributes,
@@ -28,9 +28,9 @@ export type UniqueMaterialsWithSquareMetersAndVolume = {
   objects: AbstractSyntaxTree<ObjectAttributes>[];
 };
 
-const generateUniqueMaterials = (scene: SceneType) => {
-  const uniqueMaterials = scene?.objects
-    .filter(
+const generateUniqueMaterials = (scene: SceneObjects) => {
+  const uniqueMaterials = scene
+    ?.filter(
       (object) =>
         (object.attributes as BaseObjectWithMaterialAttributes).material
     )
@@ -92,7 +92,7 @@ export const MaterialsInspector = () => {
 
   useEffect(() => {
     const uniqueMaterialsWithSquareMetersAndVolume = generateUniqueMaterials(
-      scene!
+      scene!.objects
     );
 
     setUniqueMaterials(uniqueMaterialsWithSquareMetersAndVolume);

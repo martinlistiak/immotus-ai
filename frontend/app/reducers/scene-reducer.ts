@@ -1,18 +1,18 @@
 import type {
   AbstractSyntaxTree,
-  BaseObjectWithMaterialAttributes,
   ObjectAttributes,
+  SceneObjects,
   SceneType,
 } from "app/types/scene-ast";
 import { duplicateObjectRecursively } from "app/utils/utils";
 import { produce } from "immer";
-import { useEffect, useReducer, useRef, useState } from "react";
+import { useEffect, useReducer, useRef } from "react";
 import { v4 } from "uuid";
 
 type AddObjectAction = {
   type: "ADD_OBJECT";
   payload: {
-    object: SceneType["objects"][number];
+    object: SceneObjects[number];
   };
 };
 
@@ -334,72 +334,65 @@ export type Action =
       | MoveObjectInTreeAction
     ) & { skipHistory?: boolean };
 
-export const initialScene: SceneType = {
-  id: "",
-  name: "Default Scene",
-  description: "",
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-  objects: [
-    {
-      id: "1",
-      type: "box",
-      parentId: null,
-      attributes: {
-        name: "Default Object",
-        description: "",
-        position: {
-          x: 0,
-          y: 2.5,
-          z: 0,
-        },
-        rotation: {
-          x: 0,
-          y: 0,
-          z: 0,
-        },
-        scale: {
-          x: 5,
-          y: 5,
-          z: 5,
-        },
-        material: {
-          color: "#FFA500",
-          roughness: 0.7,
-          metalness: 0.2,
-        },
+export const initialSceneObjects: SceneObjects = [
+  {
+    id: "1",
+    type: "box",
+    parentId: null,
+    attributes: {
+      name: "Default Object",
+      description: "",
+      position: {
+        x: 0,
+        y: 2.5,
+        z: 0,
+      },
+      rotation: {
+        x: 0,
+        y: 0,
+        z: 0,
+      },
+      scale: {
+        x: 5,
+        y: 5,
+        z: 5,
+      },
+      material: {
+        color: "#FFA500",
+        roughness: 0.7,
+        metalness: 0.2,
       },
     },
-    {
-      id: "2",
-      type: "light",
-      parentId: null,
-      attributes: {
-        name: "Default Light",
-        description: "",
-        position: {
-          x: 0,
-          y: 10,
-          z: 0,
-        },
-        rotation: {
-          x: 0,
-          y: 0,
-          z: 0,
-        },
-        scale: {
-          x: 1,
-          y: 1,
-          z: 1,
-        },
-        intensity: 1,
-        color: "#ffffff",
-        distance: 1000,
-        decay: 0.2,
+  },
+  {
+    id: "2",
+    type: "light",
+    parentId: null,
+    attributes: {
+      name: "Default Light",
+      description: "",
+      position: {
+        x: 0,
+        y: 10,
+        z: 0,
       },
+      rotation: {
+        x: 0,
+        y: 0,
+        z: 0,
+      },
+      scale: {
+        x: 1,
+        y: 1,
+        z: 1,
+      },
+      intensity: 1,
+      color: "#ffffff",
+      distance: 1000,
+      decay: 0.2,
     },
-  ],
-};
+  },
+];
 
 export const sceneReducer = (state: SceneType, action: Action) => {
   switch (action.type) {
@@ -751,7 +744,14 @@ export const sceneReducer = (state: SceneType, action: Action) => {
 let cb: ((state: SceneType) => void) | null = null;
 
 export const useSceneReducer = () => {
-  const [scene, dispatch] = useReducer(sceneReducer, initialScene);
+  const [scene, dispatch] = useReducer(sceneReducer, {
+    id: 0,
+    name: "",
+    description: "",
+    objects: initialSceneObjects,
+    createdAt: "",
+    updatedAt: "",
+  });
   const lastAction = useRef<Action | null>(null);
 
   useEffect(() => {

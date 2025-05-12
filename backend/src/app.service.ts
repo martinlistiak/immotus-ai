@@ -9,7 +9,7 @@ import { Response } from 'express';
 import { tools } from './tools';
 import { ToolUnion, ToolUseBlock } from '@anthropic-ai/sdk/resources';
 import { ConversationService } from './api/conversation/conversation.service';
-import { SceneType } from './types/scene-ast';
+import { SceneObjects } from './types/scene-ast';
 import { SceneService } from './api/scene/scene.service';
 dotenv.config();
 
@@ -58,7 +58,7 @@ export class AppService {
     prompt: string,
     language: string,
     conversationName: string,
-    sceneName: string,
+    sceneId: number,
     res: Response,
   ) {
     let conversation: Anthropic.Messages.MessageParam[] = [];
@@ -176,7 +176,7 @@ export class AppService {
 
         // Access scene with proper type safety
         const input = toolCall.input as Record<string, unknown>;
-        const scene = input.scene as SceneType | undefined;
+        const scene = input.scene as SceneObjects | undefined;
 
         if (!scene) {
           console.error('Error: SET_SCENE tool called with empty scene input');
@@ -184,32 +184,6 @@ export class AppService {
             `data: ${JSON.stringify({
               type: 'error',
               message: 'SET_SCENE tool called with empty scene input',
-            })}\n\n`,
-          );
-          continue;
-        }
-
-        // Validate required fields in the scene object
-        const requiredSceneFields = [
-          'id',
-          'name',
-          'description',
-          'createdAt',
-          'updatedAt',
-          'objects',
-        ];
-        const missingFields = requiredSceneFields.filter(
-          (field) => !scene[field],
-        );
-
-        if (missingFields.length > 0) {
-          console.error(
-            `Error: SET_SCENE missing required fields: ${missingFields.join(', ')}`,
-          );
-          res.write(
-            `data: ${JSON.stringify({
-              type: 'error',
-              message: `SET_SCENE missing required fields: ${missingFields.join(', ')}`,
             })}\n\n`,
           );
           continue;
@@ -227,8 +201,8 @@ export class AppService {
         );
       } else if (toolCall.name === 'GET_SCENE') {
         // get current scene from the file
-        const scene = this.sceneService.getScene({
-          name: sceneName,
+        const scene = this.sceneService.getSceneById({
+          id: sceneId,
         });
 
         res.write(
@@ -265,7 +239,7 @@ export class AppService {
           `This is the current scene: ${JSON.stringify(scene)}`,
           language,
           conversationName,
-          sceneName,
+          sceneId,
           res,
         );
       } else if (toolCall.name === 'ADD_OBJECT') {

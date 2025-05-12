@@ -1,28 +1,27 @@
-import { getScene, getScenes, postScene } from "app/api/scene";
+import {
+  getScene,
+  getScenes,
+  postScene,
+  updateSceneObjects,
+} from "app/api/scene";
 import { useLocalStorageState } from "app/hooks/useLocalStorageState";
 import {
-  initialScene,
+  initialSceneObjects,
   useSceneReducer,
   type Action,
 } from "app/reducers/scene-reducer";
 import {
   type AbstractSyntaxTree,
-  type SceneType,
   type SceneTool,
   type ObjectAttributes,
   CameraType,
-  type BoxAttributes,
-  type SphereAttributes,
-  type PlaneAttributes,
-  type CylinderAttributes,
-  type LightAttributes,
+  type SceneType,
 } from "app/types/scene-ast";
 import {
   createContext,
   useCallback,
   useContext,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -30,7 +29,7 @@ import * as THREE from "three";
 
 export const SceneContext = createContext({
   scene: null as SceneType | null,
-  scenes: [] as { name: string; scene: SceneType }[],
+  scenes: [] as SceneType[],
   selectedObjects: [] as AbstractSyntaxTree<ObjectAttributes>[],
   setSelectedObjects: (objectIds: string[]) => {},
   editingObjectName: null as string | null,
@@ -79,9 +78,7 @@ export const SceneContextProvider = ({
     "lastSceneUsed",
     ""
   );
-  const [scenes, setScenes] = useState<{ name: string; scene: SceneType }[]>(
-    []
-  );
+  const [scenes, setScenes] = useState<SceneType[]>([]);
 
   const sceneRef = useRef<SceneType | null>(null);
   sceneRef.current = scene;
@@ -121,22 +118,28 @@ export const SceneContextProvider = ({
         const scenes = await getScenes();
         setScenes(scenes);
         try {
-          res = await getScene({ name: lastSceneUsed });
+          res = await getScene({ id: lastSceneUsed || scenes[0].id });
         } catch (error) {
           if (scenes.length > 0) {
-            res = await getScene({ name: scenes[0].name });
-            setLastSceneUsed(scenes[0].name);
+            res = await getScene({ id: scenes[0].id });
+            setLastSceneUsed(scenes[0].id);
+          } else {
+            const newScene = await postScene({
+              name: "Untitled",
+              objects: initialSceneObjects,
+            });
+            res = newScene;
+            setLastSceneUsed(newScene.id);
           }
           console.error(error);
         }
 
         dispatch({
           type: "SET_SCENE",
-          // @ts-ignore
-          payload: { scene: res || initialScene },
+          payload: { scene: res },
           skipHistory: true,
         });
-        setHistory([JSON.parse(JSON.stringify(res! || initialScene))]);
+        setHistory([JSON.parse(JSON.stringify(res!))]);
         // Ensure loading state shows for at least 500 ms
         const elapsedTime = Date.now() - startTime;
         const remainingTime = Math.max(0, 500 - elapsedTime);
@@ -245,8 +248,8 @@ export const SceneContextProvider = ({
 
   useEffect(() => {
     if (scene && !isLoading) {
-      postScene({ name: scene.name, scene: scene });
-      setLastSceneUsed(scene.name);
+      updateSceneObjects({ id: scene.id, objects: scene.objects });
+      setLastSceneUsed(scene.id.toString());
     }
   }, [scene, isLoading]);
 

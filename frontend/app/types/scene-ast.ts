@@ -192,13 +192,14 @@ export type AbstractSyntaxTree<T extends SceneAttributes | ObjectAttributes> = {
   parentId: string | null;
 };
 
+export type SceneObjects = AbstractSyntaxTree<ObjectAttributes>[];
 export type SceneType = {
-  id: string;
+  id: number;
   name: string;
-  description: string;
+  description: string | null;
   createdAt: string;
   updatedAt: string;
-  objects: AbstractSyntaxTree<ObjectAttributes>[];
+  objects: SceneObjects;
 };
 
 export type SceneTool =

@@ -8,34 +8,48 @@ import {
   Post,
 } from '@nestjs/common';
 import { SceneService } from './scene.service';
-import { SceneType } from 'src/types/scene-ast';
-
+import { SceneObjects } from '../../types/scene-ast';
+import { Scene } from '../../entities/Scene.entity';
 @Controller('scene')
 export class SceneController {
   constructor(private readonly sceneService: SceneService) {}
 
   @Get()
-  getScenes(): { name: string; scene: SceneType }[] {
+  getScenes(): Promise<Scene[]> {
     return this.sceneService.getScenes();
   }
 
-  @Get(':name')
-  getScene(@Param('name') name: string) {
-    return this.sceneService.getScene({ name });
+  @Get(':id')
+  getScene(@Param('id') id: number) {
+    return this.sceneService.getSceneById({ id });
   }
 
-  @Post(':name')
-  upsertScene(@Param('name') name: string, @Body() body: { scene: SceneType }) {
-    return this.sceneService.upsertScene({ name, scene: body.scene });
+  @Post()
+  createScene(@Body() body: { name: string; objects: SceneObjects }) {
+    return this.sceneService.createScene({
+      name: body.name,
+      objects: body.objects,
+    });
   }
 
-  @Patch(':name/rename')
-  renameScene(@Param('name') name: string, @Body() body: { name: string }) {
-    return this.sceneService.renameScene({ name, newName: body.name });
+  @Patch(':id')
+  updateScene(
+    @Param('id') id: number,
+    @Body() body: { objects: SceneObjects },
+  ) {
+    return this.sceneService.updateSceneObjects({
+      id: Number(id),
+      objects: body.objects,
+    });
   }
 
-  @Delete(':name')
-  deleteScene(@Param('name') name: string) {
-    return this.sceneService.deleteScene({ name });
+  @Patch(':id/rename')
+  renameScene(@Param('id') id: number, @Body() body: { name: string }) {
+    return this.sceneService.renameScene({ id, newName: body.name });
+  }
+
+  @Delete(':id')
+  deleteScene(@Param('id') id: number) {
+    return this.sceneService.deleteScene({ id });
   }
 }

@@ -3,9 +3,13 @@ import { useSceneContext } from "../Scene/Scene.context";
 import { IoMoonOutline, IoAddOutline, IoTrashOutline } from "react-icons/io5";
 import cn from "classnames";
 import { useEffect, useState } from "react";
-import { v4 as uuidv4 } from "uuid";
-import { deleteScene } from "app/api/scene";
+import { deleteScene, postScene } from "app/api/scene";
 import { Tooltip } from "app/components/Tooltip";
+import { initialSceneObjects } from "app/reducers/scene-reducer";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+
+dayjs.extend(relativeTime);
 
 export const SceneSelection = () => {
   const {
@@ -16,15 +20,15 @@ export const SceneSelection = () => {
     scene: currentScene,
     dispatchScene,
   } = useSceneContext();
-  const [deletingScene, setDeletingScene] = useState<string | null>(null);
+  const [deletingScene, setDeletingScene] = useState<number | null>(null);
 
   useEffect(() => {
     if (isSceneSelectionOpen) refetchScenes();
   }, [isSceneSelectionOpen, refetchScenes]);
 
-  const handleDeleteScene = async (sceneName: string) => {
+  const handleDeleteScene = async (id: number) => {
     try {
-      await deleteScene({ name: sceneName });
+      await deleteScene({ id });
       refetchScenes();
       setDeletingScene(null);
     } catch (error) {
@@ -32,38 +36,58 @@ export const SceneSelection = () => {
     }
   };
 
+  const handleCreateScene = async () => {
+    try {
+      const newScene = await postScene({
+        name: "Untitled",
+        objects: initialSceneObjects,
+      });
+      refetchScenes();
+      setIsSceneSelectionOpen(false);
+      dispatchScene({
+        type: "SET_SCENE",
+        payload: { scene: newScene.scene },
+        skipHistory: true,
+      });
+    } catch (error) {
+      console.error("Error creating scene:", error);
+    }
+  };
   return (
     <Modal
       isOpen={isSceneSelectionOpen}
       onClose={() => setIsSceneSelectionOpen(false)}
     >
       <div className="grid grid-cols-3 gap-4">
-        {scenes.map(({ scene }) => (
+        {scenes.map((scene) => (
           <div
             key={scene.name}
             className={cn({
               "text-white border border-gray-800 rounded-md p-3 w-[180px] h-[180px] flex flex-col items-center justify-center text-sm cursor-pointer hover:bg-gray-900 transition-all relative group":
                 true,
-              "!border-active": currentScene?.name === scene.name,
+              "!border-active": currentScene?.id === scene.id,
             })}
+            onClick={() => {
+              setIsSceneSelectionOpen(false);
+              dispatchScene({
+                type: "SET_SCENE",
+                payload: { scene: scene },
+                skipHistory: true,
+              });
+            }}
           >
-            <div
-              className="w-full h-full bg-gray-800 rounded-md flex items-center justify-center"
-              onClick={() => {
-                setIsSceneSelectionOpen(false);
-                dispatchScene({
-                  type: "SET_SCENE",
-                  payload: { scene: scene },
-                  skipHistory: true,
-                });
-              }}
-            >
+            <div className="w-full h-full bg-gray-800 rounded-md flex items-center justify-center">
               <IoMoonOutline className="w-6 h-6" />
             </div>
-            <div className="mt-3 text-xs text-left w-full relative flex items-center justify-between gap-2">
-              <span className="text-ellipsis overflow-hidden whitespace-nowrap w-full">
-                {scene.name}
-              </span>
+            <div className="mt-2 text-xs text-left w-full relative flex items-center justify-between gap-2">
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-ellipsis overflow-hidden whitespace-nowrap w-full">
+                  {scene.name}
+                </span>
+                <span className="text-gray-400 text-[9px]">
+                  Updated {dayjs(scene.updatedAt).fromNow()}
+                </span>
+              </div>
               <Tooltip
                 text="Delete Scene"
                 className="opacity-0 group-hover:opacity-100 transition-all"
@@ -72,7 +96,7 @@ export const SceneSelection = () => {
                   className="z-10 text-gray-400 hover:text-gray-300 p-1"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setDeletingScene(scene.name);
+                    setDeletingScene(scene.id);
                   }}
                 >
                   <IoTrashOutline className="w-[14px] h-[14px]" />
@@ -82,56 +106,7 @@ export const SceneSelection = () => {
           </div>
         ))}
         <div
-          onClick={() => {
-            setIsSceneSelectionOpen(false);
-            dispatchScene({
-              type: "SET_SCENE",
-              payload: {
-                scene: {
-                  id: uuidv4(),
-                  name: "New Scene",
-                  description: "New Scene",
-                  createdAt: new Date().toISOString(),
-                  updatedAt: new Date().toISOString(),
-                  objects: [
-                    {
-                      id: uuidv4(),
-                      type: "box",
-                      attributes: {
-                        name: "New Box",
-                        description: "New Box",
-                        position: { x: 0, y: 0, z: 0 },
-                        rotation: { x: 0, y: 0, z: 0 },
-                        scale: { x: 1, y: 1, z: 1 },
-                        material: {
-                          color: "#ffffff",
-                          roughness: 0.5,
-                          metalness: 0.5,
-                        },
-                      },
-                      parentId: null,
-                    },
-                    {
-                      id: uuidv4(),
-                      type: "light",
-                      attributes: {
-                        name: "New Light",
-                        description: "New Light",
-                        position: { x: 0, y: 0, z: 0 },
-                        rotation: { x: 0, y: 0, z: 0 },
-                        scale: { x: 1, y: 1, z: 1 },
-                        color: "#ffffff",
-                        intensity: 1,
-                        distance: 10,
-                        decay: 0,
-                      },
-                      parentId: null,
-                    },
-                  ],
-                },
-              },
-            });
-          }}
+          onClick={handleCreateScene}
           className="text-white border border-gray-800 rounded-md p-2 w-[180px] h-[180px] flex flex-col items-center justify-center text-sm cursor-pointer hover:bg-gray-900 transition-all"
         >
           <IoAddOutline className="w-6 h-6" />

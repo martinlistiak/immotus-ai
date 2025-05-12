@@ -1,7 +1,14 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "CalSans";
+  src: url("/fonts/Cal_Sans/CalSans-Regular.ttf") format("truetype");
+}
+
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-cal-sans: "CalSans", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 

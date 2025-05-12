@@ -30,7 +30,7 @@ export class AppController {
     @Query('prompt') prompt: string,
     @Query('language') language: string,
     @Query('conversationName') conversationName: string,
-    @Query('sceneName') sceneName: string,
+    @Query('sceneId') sceneId: number,
     @Res() res: Response,
   ) {
     try {
@@ -42,7 +42,7 @@ export class AppController {
         prompt,
         language,
         conversationName,
-        sceneName,
+        Number(sceneId),
         res,
       );
 

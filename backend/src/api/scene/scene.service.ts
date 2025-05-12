@@ -1,28 +1,64 @@
-import { Injectable } from '@nestjs/common';
-import { SceneRepository } from './scene.repository';
-import { SceneType } from 'src/types/scene-ast';
+import { Inject, Injectable } from '@nestjs/common';
+// import { SceneRepository } from './scene.repository';
+import { SceneObjects } from '../../types/scene-ast';
+import { Scene } from '../../entities/Scene.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class SceneService {
-  constructor(private readonly sceneRepository: SceneRepository) {}
+  constructor(
+    // private readonly sceneRepository: SceneRepository,
+    @Inject('SCENE_REPOSITORY')
+    private sceneRepository: Repository<Scene>,
+  ) {}
 
-  getScenes(): { name: string; scene: SceneType }[] {
-    return this.sceneRepository.findAll();
+  getScenes(): Promise<Scene[]> {
+    return this.sceneRepository.find({ order: { updatedAt: 'DESC' } });
   }
 
-  getScene({ name }: { name: string }) {
-    return this.sceneRepository.findByName(name);
+  getSceneById({ id }: { id: number }) {
+    return this.sceneRepository.findOne({ where: { id } });
   }
 
-  upsertScene({ name, scene }: { name: string; scene: SceneType }) {
-    return this.sceneRepository.upsert({ name, scene });
+  async createScene({
+    name,
+    objects,
+  }: {
+    name: string;
+    objects: SceneObjects;
+  }): Promise<Scene> {
+    const newScene = this.sceneRepository.create({ name, objects });
+    await this.sceneRepository.save(newScene);
+    return newScene;
   }
 
-  renameScene({ name, newName }: { name: string; newName: string }) {
-    return this.sceneRepository.rename(name, newName);
+  async updateSceneObjects({
+    id,
+    objects,
+  }: {
+    id: number;
+    objects: SceneObjects;
+  }) {
+    await this.sceneRepository.update(id, {
+      objects,
+    });
+
+    const updatedScene = await this.sceneRepository.findOne({
+      where: { id },
+    });
+
+    return updatedScene;
   }
 
-  deleteScene({ name }: { name: string }) {
-    return this.sceneRepository.delete(name);
+  async renameScene({ id, newName }: { id: number; newName: string }) {
+    await this.sceneRepository.update(id, { name: newName });
+    const updatedScene = await this.sceneRepository.findOne({
+      where: { id },
+    });
+    return updatedScene;
+  }
+
+  deleteScene({ id }: { id: number }) {
+    return this.sceneRepository.delete({ id });
   }
 }

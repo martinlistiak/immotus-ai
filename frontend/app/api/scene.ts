@@ -1,4 +1,4 @@
-import type { SceneType } from "app/types/scene-ast";
+import type { SceneObjects, SceneType } from "app/types/scene-ast";
 import { axiosInstance } from "./client";
 
 export const getScenes = async () => {
@@ -11,36 +11,51 @@ export const getScenes = async () => {
   }
 };
 
-export const postScene = async ({
-  name,
-  scene,
+export const getScene = async ({
+  id,
 }: {
-  name: string;
-  scene: SceneType;
-}) => {
-  const response = await axiosInstance.post(`/scene/${name}`, { scene });
+  id: number | string;
+}): Promise<SceneType> => {
+  const response = await axiosInstance.get(`/scene/${id}`);
   return response.data;
 };
 
-export const getScene = async ({ name }: { name: string }) => {
-  const response = await axiosInstance.get(`/scene/${name}`);
+export const postScene = async ({
+  name,
+  objects,
+}: {
+  name: string;
+  objects: SceneObjects;
+}) => {
+  const response = await axiosInstance.post(`/scene`, { name, objects });
+  return response.data;
+};
+
+export const updateSceneObjects = async ({
+  id,
+  objects,
+}: {
+  id: number | string;
+  objects: SceneObjects;
+}) => {
+  const response = await axiosInstance.patch(`/scene/${id}`, { objects });
   return response.data;
 };
 
 export const renameScene = async ({
-  name,
+  id,
   newName,
 }: {
-  name: string;
+  id: number | string;
   newName: string;
 }) => {
-  const response = await axiosInstance.patch(`/scene/${name}/rename`, {
+  const response = await axiosInstance.patch(`/scene/${id}/rename`, {
     name: newName,
   });
   return response.data;
 };
 
-export const deleteScene = async ({ name }: { name: string }) => {
-  const response = await axiosInstance.delete(`/scene/${name}`);
+export const deleteScene = async ({ id }: { id: number | string }) => {
+  const response = await axiosInstance.delete(`/scene/${id}`);
   return response.data;
 };

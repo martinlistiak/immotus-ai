@@ -188,10 +188,12 @@ export const ConversationContextProvider = ({
 
     // Create a new EventSource connection
     const eventSource = new EventSource(
-      `http://localhost:3001/stream-response?prompt=${encodeURIComponent(
+      `${
+        import.meta.env.VITE_API_URL
+      }/stream-response?prompt=${encodeURIComponent(
         text
-      )}&language=${language}&conversationName=${"default"}&sceneName=${
-        scene?.name
+      )}&language=${language}&conversationName=${"default"}&sceneId=${
+        scene?.id
       }`
     );
     eventSourceRef.current = eventSource;
@@ -304,7 +306,7 @@ export const ConversationContextProvider = ({
           try {
             // Send to backend for speech-to-text processing
             const response = await fetch(
-              "http://localhost:3001/speech-to-text",
+              `${import.meta.env.VITE_API_URL}/speech-to-text`,
               {
                 method: "POST",
                 body: formData,
