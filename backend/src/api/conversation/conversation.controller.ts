@@ -9,7 +9,8 @@ import {
 } from '@nestjs/common';
 import { ConversationService } from './conversation.service';
 import { Anthropic } from '@anthropic-ai/sdk';
-
+import { User } from 'src/decorators/user.decorator';
+import { User as UserEntity } from 'src/entities/User.entity';
 type ConversationType = Anthropic.Messages.MessageParam[];
 
 @Controller('conversation')
@@ -17,39 +18,41 @@ export class ConversationController {
   constructor(private readonly conversationService: ConversationService) {}
 
   @Get()
-  getConversations(): { name: string; conversation: ConversationType }[] {
-    return this.conversationService.getConversations();
+  getConversations(@User() user: UserEntity) {
+    return this.conversationService.getConversations({ userId: user.id });
   }
 
-  @Get(':name')
-  getConversation(@Param('name') name: string) {
-    return this.conversationService.getConversation({ name });
+  @Get(':id')
+  getConversation(@Param('id') id: number, @User() user: UserEntity) {
+    return this.conversationService.getConversation({ id, userId: user.id });
   }
 
-  @Post(':name')
-  upsertConversation(
-    @Param('name') name: string,
+  @Post()
+  createConversation(
     @Body() body: { conversation: ConversationType },
+    @User() user: UserEntity,
   ) {
-    return this.conversationService.upsertConversation({
-      name,
+    return this.conversationService.createConversation({
       conversation: body.conversation,
+      userId: user.id,
     });
   }
 
-  @Patch(':name/rename')
+  @Patch(':id/rename')
   renameConversation(
-    @Param('name') name: string,
+    @Param('id') id: number,
     @Body() body: { name: string },
+    @User() user: UserEntity,
   ) {
     return this.conversationService.renameConversation({
-      name,
+      id,
       newName: body.name,
+      userId: user.id,
     });
   }
 
-  @Delete(':name')
-  deleteConversation(@Param('name') name: string) {
-    return this.conversationService.deleteConversation({ name });
+  @Delete(':id')
+  deleteConversation(@Param('id') id: number, @User() user: UserEntity) {
+    return this.conversationService.deleteConversation({ id, userId: user.id });
   }
 }

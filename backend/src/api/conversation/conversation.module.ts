@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConversationController } from './conversation.controller';
 import { ConversationService } from './conversation.service';
-import { ConversationRepository } from './conversation.repository';
+import { conversationProviders } from './conversation.providers';
+import { DatabaseModule } from '../../database.module';
+import { SceneModule } from '../scene/scene.module';
 @Module({
-  imports: [],
+  imports: [DatabaseModule, SceneModule],
   controllers: [ConversationController],
-  providers: [ConversationService, ConversationRepository],
-  exports: [ConversationService],
+  providers: [...conversationProviders, ConversationService],
+  exports: [...conversationProviders, ConversationService],
 })
 export class ConversationModule {}

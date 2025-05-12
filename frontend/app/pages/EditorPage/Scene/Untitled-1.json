@@ -1,0 +1,993 @@
+{
+  "id": null,
+  "name": "L-Shaped Kitchen",
+  "description": "An L-shaped kitchen with dimensions 4m x 3.5m, featuring cabinets, countertops, a kitchen table with chairs, and 30cm thick walls.",
+  "createdAt": "2023-06-15T10:00:00Z",
+  "updatedAt": "2023-06-15T10:00:00Z",
+  "objects": [
+    {
+      "id": "floor",
+      "type": "plane",
+      "attributes": {
+        "name": "Kitchen Floor",
+        "description": "Kitchen floor surface",
+        "position": { "x": 0, "y": 0, "z": 0 },
+        "rotation": { "x": -1.5708, "y": 0, "z": 0 },
+        "scale": { "x": 4, "y": 3.5, "z": 1 },
+        "material": { "color": "#e0d9c5", "roughness": 0.8, "metalness": 0 },
+        "width": 4,
+        "height": 3.5
+      },
+      "parentId": null
+    },
+    {
+      "id": "wall-1",
+      "type": "box",
+      "attributes": {
+        "name": "Wall 1",
+        "description": "Back wall",
+        "position": { "x": 0, "y": 1.5, "z": -1.75 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 4, "y": 3, "z": 0.3 },
+        "material": { "color": "#f5f5f5", "roughness": 0.9, "metalness": 0 }
+      },
+      "parentId": null
+    },
+    {
+      "id": "wall-2",
+      "type": "box",
+      "attributes": {
+        "name": "Wall 2",
+        "description": "Side wall",
+        "position": { "x": -2, "y": 1.5, "z": 0 },
+        "rotation": { "x": 0, "y": 1.5708, "z": 0 },
+        "scale": { "x": 3.5, "y": 3, "z": 0.3 },
+        "material": { "color": "#f5f5f5", "roughness": 0.9, "metalness": 0 }
+      },
+      "parentId": null
+    },
+    {
+      "id": "counter-base-group",
+      "type": "group",
+      "attributes": {
+        "name": "Counter Base Group",
+        "description": "Group for all counter base cabinets",
+        "position": { "x": 0, "y": 0, "z": 0 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 }
+      },
+      "parentId": null
+    },
+    {
+      "id": "counter-long-base",
+      "type": "box",
+      "attributes": {
+        "name": "Long Counter Base",
+        "description": "Base for the long section of counter",
+        "position": { "x": 0, "y": 0.45, "z": -1.45 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 3.6, "y": 0.9, "z": 0.6 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 }
+      },
+      "parentId": "counter-base-group"
+    },
+    {
+      "id": "counter-short-base",
+      "type": "box",
+      "attributes": {
+        "name": "Short Counter Base",
+        "description": "Base for the short section of counter",
+        "position": { "x": -1.7, "y": 0.45, "z": -0.3 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 0.6, "y": 0.9, "z": 2.3 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 }
+      },
+      "parentId": "counter-base-group"
+    },
+    {
+      "id": "countertop-long",
+      "type": "box",
+      "attributes": {
+        "name": "Long Countertop",
+        "description": "Countertop for the long section",
+        "position": { "x": 0, "y": 0.95, "z": -1.45 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 3.7, "y": 0.05, "z": 0.65 },
+        "material": { "color": "#d3d3d3", "roughness": 0.4, "metalness": 0.3 }
+      },
+      "parentId": null
+    },
+    {
+      "id": "countertop-short",
+      "type": "box",
+      "attributes": {
+        "name": "Short Countertop",
+        "description": "Countertop for the short section",
+        "position": { "x": -1.7, "y": 0.95, "z": -0.3 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 0.65, "y": 0.05, "z": 2.35 },
+        "material": { "color": "#d3d3d3", "roughness": 0.4, "metalness": 0.3 }
+      },
+      "parentId": null
+    },
+    {
+      "id": "sink",
+      "type": "box",
+      "attributes": {
+        "name": "Kitchen Sink",
+        "description": "Stainless steel sink",
+        "position": { "x": 0.8, "y": 0.9, "z": -1.45 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 0.8, "y": 0.05, "z": 0.5 },
+        "material": { "color": "#c0c0c0", "roughness": 0.2, "metalness": 0.8 }
+      },
+      "parentId": null
+    },
+    {
+      "id": "sink-basin",
+      "type": "box",
+      "attributes": {
+        "name": "Sink Basin",
+        "description": "Sink basin depression",
+        "position": { "x": 0.8, "y": 0.7, "z": -1.45 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 0.7, "y": 0.3, "z": 0.4 },
+        "material": { "color": "#a9a9a9", "roughness": 0.2, "metalness": 0.8 }
+      },
+      "parentId": null
+    },
+    {
+      "id": "faucet-base",
+      "type": "cylinder",
+      "attributes": {
+        "name": "Faucet Base",
+        "description": "Base of the kitchen faucet",
+        "position": { "x": 0.8, "y": 0.95, "z": -1.65 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 },
+        "material": { "color": "#c0c0c0", "roughness": 0.2, "metalness": 0.9 },
+        "radiusTop": 0.03,
+        "radiusBottom": 0.04,
+        "height": 0.05
+      },
+      "parentId": null
+    },
+    {
+      "id": "faucet-neck",
+      "type": "cylinder",
+      "attributes": {
+        "name": "Faucet Neck",
+        "description": "Neck of the kitchen faucet",
+        "position": { "x": 0.8, "y": 1.1, "z": -1.65 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 },
+        "material": { "color": "#c0c0c0", "roughness": 0.2, "metalness": 0.9 },
+        "radiusTop": 0.02,
+        "radiusBottom": 0.02,
+        "height": 0.3
+      },
+      "parentId": null
+    },
+    {
+      "id": "faucet-spout",
+      "type": "cylinder",
+      "attributes": {
+        "name": "Faucet Spout",
+        "description": "Spout of the kitchen faucet",
+        "position": { "x": 0.8, "y": 1.25, "z": -1.5 },
+        "rotation": { "x": 1.5708, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 },
+        "material": { "color": "#c0c0c0", "roughness": 0.2, "metalness": 0.9 },
+        "radiusTop": 0.015,
+        "radiusBottom": 0.02,
+        "height": 0.2
+      },
+      "parentId": null
+    },
+    {
+      "id": "stove",
+      "type": "box",
+      "attributes": {
+        "name": "Kitchen Stove",
+        "description": "Electric stove",
+        "position": { "x": -1, "y": 0.95, "z": -1.45 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 0.8, "y": 0.05, "z": 0.6 },
+        "material": { "color": "#1a1a1a", "roughness": 0.5, "metalness": 0.5 }
+      },
+      "parentId": null
+    },
+    {
+      "id": "burner-1",
+      "type": "cylinder",
+      "attributes": {
+        "name": "Stove Burner 1",
+        "description": "Front left burner",
+        "position": { "x": -1.2, "y": 0.96, "z": -1.35 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 },
+        "material": { "color": "#333333", "roughness": 0.7, "metalness": 0.3 },
+        "radiusTop": 0.08,
+        "radiusBottom": 0.08,
+        "height": 0.01
+      },
+      "parentId": null
+    },
+    {
+      "id": "burner-2",
+      "type": "cylinder",
+      "attributes": {
+        "name": "Stove Burner 2",
+        "description": "Front right burner",
+        "position": { "x": -0.8, "y": 0.96, "z": -1.35 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 },
+        "material": { "color": "#333333", "roughness": 0.7, "metalness": 0.3 },
+        "radiusTop": 0.08,
+        "radiusBottom": 0.08,
+        "height": 0.01
+      },
+      "parentId": null
+    },
+    {
+      "id": "burner-3",
+      "type": "cylinder",
+      "attributes": {
+        "name": "Stove Burner 3",
+        "description": "Back left burner",
+        "position": { "x": -1.2, "y": 0.96, "z": -1.55 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 },
+        "material": { "color": "#333333", "roughness": 0.7, "metalness": 0.3 },
+        "radiusTop": 0.08,
+        "radiusBottom": 0.08,
+        "height": 0.01
+      },
+      "parentId": null
+    },
+    {
+      "id": "burner-4",
+      "type": "cylinder",
+      "attributes": {
+        "name": "Stove Burner 4",
+        "description": "Back right burner",
+        "position": { "x": -0.8, "y": 0.96, "z": -1.55 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 },
+        "material": { "color": "#333333", "roughness": 0.7, "metalness": 0.3 },
+        "radiusTop": 0.08,
+        "radiusBottom": 0.08,
+        "height": 0.01
+      },
+      "parentId": null
+    },
+    {
+      "id": "refrigerator",
+      "type": "box",
+      "attributes": {
+        "name": "Refrigerator",
+        "description": "Kitchen refrigerator",
+        "position": { "x": -1.7, "y": 1, "z": 1 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 0.8, "y": 2, "z": 0.7 },
+        "material": { "color": "#e0e0e0", "roughness": 0.3, "metalness": 0.2 }
+      },
+      "parentId": null
+    },
+    {
+      "id": "fridge-handle",
+      "type": "box",
+      "attributes": {
+        "name": "Refrigerator Handle",
+        "description": "Handle for the refrigerator",
+        "position": { "x": -1.35, "y": 1, "z": 1.35 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 0.03, "y": 0.7, "z": 0.03 },
+        "material": { "color": "#a0a0a0", "roughness": 0.2, "metalness": 0.8 }
+      },
+      "parentId": null
+    },
+    {
+      "id": "kitchen-table",
+      "type": "box",
+      "attributes": {
+        "name": "Kitchen Table",
+        "description": "Dining table",
+        "position": { "x": 1.5, "y": 0.75, "z": 0.5 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1.2, "y": 0.05, "z": 1 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 }
+      },
+      "parentId": null
+    },
+    {
+      "id": "table-leg-1",
+      "type": "cylinder",
+      "attributes": {
+        "name": "Table Leg 1",
+        "description": "Front left table leg",
+        "position": { "x": 1.1, "y": 0.375, "z": 0.8 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 },
+        "radiusTop": 0.03,
+        "radiusBottom": 0.03,
+        "height": 0.75
+      },
+      "parentId": null
+    },
+    {
+      "id": "table-leg-2",
+      "type": "cylinder",
+      "attributes": {
+        "name": "Table Leg 2",
+        "description": "Front right table leg",
+        "position": { "x": 1.9, "y": 0.375, "z": 0.8 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 },
+        "radiusTop": 0.03,
+        "radiusBottom": 0.03,
+        "height": 0.75
+      },
+      "parentId": null
+    },
+    {
+      "id": "table-leg-3",
+      "type": "cylinder",
+      "attributes": {
+        "name": "Table Leg 3",
+        "description": "Back left table leg",
+        "position": { "x": 1.1, "y": 0.375, "z": 0.2 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 },
+        "radiusTop": 0.03,
+        "radiusBottom": 0.03,
+        "height": 0.75
+      },
+      "parentId": null
+    },
+    {
+      "id": "table-leg-4",
+      "type": "cylinder",
+      "attributes": {
+        "name": "Table Leg 4",
+        "description": "Back right table leg",
+        "position": { "x": 1.9, "y": 0.375, "z": 0.2 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 },
+        "radiusTop": 0.03,
+        "radiusBottom": 0.03,
+        "height": 0.75
+      },
+      "parentId": null
+    },
+    {
+      "id": "chair-1",
+      "type": "group",
+      "attributes": {
+        "name": "Chair 1",
+        "description": "Dining chair 1",
+        "position": { "x": 1.1, "y": 0, "z": 1.1 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 }
+      },
+      "parentId": null
+    },
+    {
+      "id": "chair-1-seat",
+      "type": "box",
+      "attributes": {
+        "name": "Chair 1 Seat",
+        "description": "Seat of chair 1",
+        "position": { "x": 0, "y": 0.45, "z": 0 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 0.4, "y": 0.05, "z": 0.4 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 }
+      },
+      "parentId": "chair-1"
+    },
+    {
+      "id": "chair-1-back",
+      "type": "box",
+      "attributes": {
+        "name": "Chair 1 Back",
+        "description": "Back of chair 1",
+        "position": { "x": 0, "y": 0.85, "z": -0.18 },
+        "rotation": { "x": 0.1, "y": 0, "z": 0 },
+        "scale": { "x": 0.38, "y": 0.4, "z": 0.05 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 }
+      },
+      "parentId": "chair-1"
+    },
+    {
+      "id": "chair-1-leg-1",
+      "type": "cylinder",
+      "attributes": {
+        "name": "Chair 1 Leg 1",
+        "description": "Front left leg of chair 1",
+        "position": { "x": -0.15, "y": 0.225, "z": 0.15 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 },
+        "radiusTop": 0.02,
+        "radiusBottom": 0.02,
+        "height": 0.45
+      },
+      "parentId": "chair-1"
+    },
+    {
+      "id": "chair-1-leg-2",
+      "type": "cylinder",
+      "attributes": {
+        "name": "Chair 1 Leg 2",
+        "description": "Front right leg of chair 1",
+        "position": { "x": 0.15, "y": 0.225, "z": 0.15 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 },
+        "radiusTop": 0.02,
+        "radiusBottom": 0.02,
+        "height": 0.45
+      },
+      "parentId": "chair-1"
+    },
+    {
+      "id": "chair-1-leg-3",
+      "type": "cylinder",
+      "attributes": {
+        "name": "Chair 1 Leg 3",
+        "description": "Back left leg of chair 1",
+        "position": { "x": -0.15, "y": 0.225, "z": -0.15 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 },
+        "radiusTop": 0.02,
+        "radiusBottom": 0.02,
+        "height": 0.45
+      },
+      "parentId": "chair-1"
+    },
+    {
+      "id": "chair-1-leg-4",
+      "type": "cylinder",
+      "attributes": {
+        "name": "Chair 1 Leg 4",
+        "description": "Back right leg of chair 1",
+        "position": { "x": 0.15, "y": 0.225, "z": -0.15 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 },
+        "radiusTop": 0.02,
+        "radiusBottom": 0.02,
+        "height": 0.45
+      },
+      "parentId": "chair-1"
+    },
+    {
+      "id": "chair-2",
+      "type": "group",
+      "attributes": {
+        "name": "Chair 2",
+        "description": "Dining chair 2",
+        "position": { "x": 1.9, "y": 0, "z": 1.1 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 }
+      },
+      "parentId": null
+    },
+    {
+      "id": "chair-2-seat",
+      "type": "box",
+      "attributes": {
+        "name": "Chair 2 Seat",
+        "description": "Seat of chair 2",
+        "position": { "x": 0, "y": 0.45, "z": 0 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 0.4, "y": 0.05, "z": 0.4 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 }
+      },
+      "parentId": "chair-2"
+    },
+    {
+      "id": "chair-2-back",
+      "type": "box",
+      "attributes": {
+        "name": "Chair 2 Back",
+        "description": "Back of chair 2",
+        "position": { "x": 0, "y": 0.85, "z": -0.18 },
+        "rotation": { "x": 0.1, "y": 0, "z": 0 },
+        "scale": { "x": 0.38, "y": 0.4, "z": 0.05 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 }
+      },
+      "parentId": "chair-2"
+    },
+    {
+      "id": "chair-2-leg-1",
+      "type": "cylinder",
+      "attributes": {
+        "name": "Chair 2 Leg 1",
+        "description": "Front left leg of chair 2",
+        "position": { "x": -0.15, "y": 0.225, "z": 0.15 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 },
+        "radiusTop": 0.02,
+        "radiusBottom": 0.02,
+        "height": 0.45
+      },
+      "parentId": "chair-2"
+    },
+    {
+      "id": "chair-2-leg-2",
+      "type": "cylinder",
+      "attributes": {
+        "name": "Chair 2 Leg 2",
+        "description": "Front right leg of chair 2",
+        "position": { "x": 0.15, "y": 0.225, "z": 0.15 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 },
+        "radiusTop": 0.02,
+        "radiusBottom": 0.02,
+        "height": 0.45
+      },
+      "parentId": "chair-2"
+    },
+    {
+      "id": "chair-2-leg-3",
+      "type": "cylinder",
+      "attributes": {
+        "name": "Chair 2 Leg 3",
+        "description": "Back left leg of chair 2",
+        "position": { "x": -0.15, "y": 0.225, "z": -0.15 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 },
+        "radiusTop": 0.02,
+        "radiusBottom": 0.02,
+        "height": 0.45
+      },
+      "parentId": "chair-2"
+    },
+    {
+      "id": "chair-2-leg-4",
+      "type": "cylinder",
+      "attributes": {
+        "name": "Chair 2 Leg 4",
+        "description": "Back right leg of chair 2",
+        "position": { "x": 0.15, "y": 0.225, "z": -0.15 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 },
+        "radiusTop": 0.02,
+        "radiusBottom": 0.02,
+        "height": 0.45
+      },
+      "parentId": "chair-2"
+    },
+    {
+      "id": "chair-3",
+      "type": "group",
+      "attributes": {
+        "name": "Chair 3",
+        "description": "Dining chair 3",
+        "position": { "x": 1.5, "y": 0, "z": -0.1 },
+        "rotation": { "x": 0, "y": 3.14159, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 }
+      },
+      "parentId": null
+    },
+    {
+      "id": "chair-3-seat",
+      "type": "box",
+      "attributes": {
+        "name": "Chair 3 Seat",
+        "description": "Seat of chair 3",
+        "position": { "x": 0, "y": 0.45, "z": 0 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 0.4, "y": 0.05, "z": 0.4 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 }
+      },
+      "parentId": "chair-3"
+    },
+    {
+      "id": "chair-3-back",
+      "type": "box",
+      "attributes": {
+        "name": "Chair 3 Back",
+        "description": "Back of chair 3",
+        "position": { "x": 0, "y": 0.85, "z": -0.18 },
+        "rotation": { "x": 0.1, "y": 0, "z": 0 },
+        "scale": { "x": 0.38, "y": 0.4, "z": 0.05 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 }
+      },
+      "parentId": "chair-3"
+    },
+    {
+      "id": "chair-3-leg-1",
+      "type": "cylinder",
+      "attributes": {
+        "name": "Chair 3 Leg 1",
+        "description": "Front left leg of chair 3",
+        "position": { "x": -0.15, "y": 0.225, "z": 0.15 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 },
+        "radiusTop": 0.02,
+        "radiusBottom": 0.02,
+        "height": 0.45
+      },
+      "parentId": "chair-3"
+    },
+    {
+      "id": "chair-3-leg-2",
+      "type": "cylinder",
+      "attributes": {
+        "name": "Chair 3 Leg 2",
+        "description": "Front right leg of chair 3",
+        "position": { "x": 0.15, "y": 0.225, "z": 0.15 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 },
+        "radiusTop": 0.02,
+        "radiusBottom": 0.02,
+        "height": 0.45
+      },
+      "parentId": "chair-3"
+    },
+    {
+      "id": "chair-3-leg-3",
+      "type": "cylinder",
+      "attributes": {
+        "name": "Chair 3 Leg 3",
+        "description": "Back left leg of chair 3",
+        "position": { "x": -0.15, "y": 0.225, "z": -0.15 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 },
+        "radiusTop": 0.02,
+        "radiusBottom": 0.02,
+        "height": 0.45
+      },
+      "parentId": "chair-3"
+    },
+    {
+      "id": "chair-3-leg-4",
+      "type": "cylinder",
+      "attributes": {
+        "name": "Chair 3 Leg 4",
+        "description": "Back right leg of chair 3",
+        "position": { "x": 0.15, "y": 0.225, "z": -0.15 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 },
+        "radiusTop": 0.02,
+        "radiusBottom": 0.02,
+        "height": 0.45
+      },
+      "parentId": "chair-3"
+    },
+    {
+      "id": "upper-cabinet-group",
+      "type": "group",
+      "attributes": {
+        "name": "Upper Cabinet Group",
+        "description": "Group for all upper cabinets",
+        "position": { "x": 0, "y": 0, "z": 0 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 }
+      },
+      "parentId": null
+    },
+    {
+      "id": "upper-cabinet-1",
+      "type": "box",
+      "attributes": {
+        "name": "Upper Cabinet 1",
+        "description": "Upper cabinet above counter",
+        "position": { "x": 1.2, "y": 2, "z": -1.45 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 0.7, "z": 0.4 },
+        "material": { "color": "#a0522d", "roughness": 0.7, "metalness": 0 }
+      },
+      "parentId": "upper-cabinet-group"
+    },
+    {
+      "id": "upper-cabinet-2",
+      "type": "box",
+      "attributes": {
+        "name": "Upper Cabinet 2",
+        "description": "Upper cabinet above counter",
+        "position": { "x": 0, "y": 2, "z": -1.45 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 0.7, "z": 0.4 },
+        "material": { "color": "#a0522d", "roughness": 0.7, "metalness": 0 }
+      },
+      "parentId": "upper-cabinet-group"
+    },
+    {
+      "id": "upper-cabinet-3",
+      "type": "box",
+      "attributes": {
+        "name": "Upper Cabinet 3",
+        "description": "Upper cabinet above counter",
+        "position": { "x": -1.2, "y": 2, "z": -1.45 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 0.7, "z": 0.4 },
+        "material": { "color": "#a0522d", "roughness": 0.7, "metalness": 0 }
+      },
+      "parentId": "upper-cabinet-group"
+    },
+    {
+      "id": "upper-cabinet-4",
+      "type": "box",
+      "attributes": {
+        "name": "Upper Cabinet 4",
+        "description": "Upper cabinet on side wall",
+        "position": { "x": -1.7, "y": 2, "z": -0.8 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 0.4, "y": 0.7, "z": 1 },
+        "material": { "color": "#a0522d", "roughness": 0.7, "metalness": 0 }
+      },
+      "parentId": "upper-cabinet-group"
+    },
+    {
+      "id": "cabinet-plank-group",
+      "type": "group",
+      "attributes": {
+        "name": "Cabinet Plank Group",
+        "description": "Group for all cabinet planks",
+        "position": { "x": 0, "y": 0, "z": 0 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 }
+      },
+      "parentId": null
+    },
+    {
+      "id": "long-cabinet-bottom",
+      "type": "box",
+      "attributes": {
+        "name": "Long Cabinet Bottom",
+        "description": "Bottom plank of long cabinet",
+        "position": { "x": 0, "y": 0.05, "z": -1.45 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 3.6, "y": 0.02, "z": 0.6 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 }
+      },
+      "parentId": "cabinet-plank-group"
+    },
+    {
+      "id": "long-cabinet-top",
+      "type": "box",
+      "attributes": {
+        "name": "Long Cabinet Top",
+        "description": "Top plank of long cabinet",
+        "position": { "x": 0, "y": 0.9, "z": -1.45 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 3.6, "y": 0.02, "z": 0.6 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 }
+      },
+      "parentId": "cabinet-plank-group"
+    },
+    {
+      "id": "long-cabinet-back",
+      "type": "box",
+      "attributes": {
+        "name": "Long Cabinet Back",
+        "description": "Back plank of long cabinet",
+        "position": { "x": 0, "y": 0.45, "z": -1.7 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 3.6, "y": 0.85, "z": 0.02 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 }
+      },
+      "parentId": "cabinet-plank-group"
+    },
+    {
+      "id": "long-cabinet-left",
+      "type": "box",
+      "attributes": {
+        "name": "Long Cabinet Left",
+        "description": "Left plank of long cabinet",
+        "position": { "x": -1.8, "y": 0.45, "z": -1.45 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 0.02, "y": 0.85, "z": 0.6 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 }
+      },
+      "parentId": "cabinet-plank-group"
+    },
+    {
+      "id": "long-cabinet-right",
+      "type": "box",
+      "attributes": {
+        "name": "Long Cabinet Right",
+        "description": "Right plank of long cabinet",
+        "position": { "x": 1.8, "y": 0.45, "z": -1.45 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 0.02, "y": 0.85, "z": 0.6 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 }
+      },
+      "parentId": "cabinet-plank-group"
+    },
+    {
+      "id": "long-cabinet-divider-1",
+      "type": "box",
+      "attributes": {
+        "name": "Long Cabinet Divider 1",
+        "description": "Divider plank in long cabinet",
+        "position": { "x": -0.9, "y": 0.45, "z": -1.45 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 0.02, "y": 0.85, "z": 0.6 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 }
+      },
+      "parentId": "cabinet-plank-group"
+    },
+    {
+      "id": "long-cabinet-divider-2",
+      "type": "box",
+      "attributes": {
+        "name": "Long Cabinet Divider 2",
+        "description": "Divider plank in long cabinet",
+        "position": { "x": 0, "y": 0.45, "z": -1.45 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 0.02, "y": 0.85, "z": 0.6 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 }
+      },
+      "parentId": "cabinet-plank-group"
+    },
+    {
+      "id": "long-cabinet-divider-3",
+      "type": "box",
+      "attributes": {
+        "name": "Long Cabinet Divider 3",
+        "description": "Divider plank in long cabinet",
+        "position": { "x": 0.9, "y": 0.45, "z": -1.45 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 0.02, "y": 0.85, "z": 0.6 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 }
+      },
+      "parentId": "cabinet-plank-group"
+    },
+    {
+      "id": "short-cabinet-bottom",
+      "type": "box",
+      "attributes": {
+        "name": "Short Cabinet Bottom",
+        "description": "Bottom plank of short cabinet",
+        "position": { "x": -1.7, "y": 0.05, "z": -0.3 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 0.6, "y": 0.02, "z": 2.3 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 }
+      },
+      "parentId": "cabinet-plank-group"
+    },
+    {
+      "id": "short-cabinet-top",
+      "type": "box",
+      "attributes": {
+        "name": "Short Cabinet Top",
+        "description": "Top plank of short cabinet",
+        "position": { "x": -1.7, "y": 0.9, "z": -0.3 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 0.6, "y": 0.02, "z": 2.3 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 }
+      },
+      "parentId": "cabinet-plank-group"
+    },
+    {
+      "id": "short-cabinet-back",
+      "type": "box",
+      "attributes": {
+        "name": "Short Cabinet Back",
+        "description": "Back plank of short cabinet",
+        "position": { "x": -1.95, "y": 0.45, "z": -0.3 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 0.02, "y": 0.85, "z": 2.3 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 }
+      },
+      "parentId": "cabinet-plank-group"
+    },
+    {
+      "id": "short-cabinet-front",
+      "type": "box",
+      "attributes": {
+        "name": "Short Cabinet Front",
+        "description": "Front plank of short cabinet",
+        "position": { "x": -1.45, "y": 0.45, "z": -0.3 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 0.02, "y": 0.85, "z": 2.3 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 }
+      },
+      "parentId": "cabinet-plank-group"
+    },
+    {
+      "id": "short-cabinet-divider-1",
+      "type": "box",
+      "attributes": {
+        "name": "Short Cabinet Divider 1",
+        "description": "Divider plank in short cabinet",
+        "position": { "x": -1.7, "y": 0.45, "z": 0.5 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 0.6, "y": 0.85, "z": 0.02 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 }
+      },
+      "parentId": "cabinet-plank-group"
+    },
+    {
+      "id": "short-cabinet-divider-2",
+      "type": "box",
+      "attributes": {
+        "name": "Short Cabinet Divider 2",
+        "description": "Divider plank in short cabinet",
+        "position": { "x": -1.7, "y": 0.45, "z": -0.3 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 0.6, "y": 0.85, "z": 0.02 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 }
+      },
+      "parentId": "cabinet-plank-group"
+    },
+    {
+      "id": "short-cabinet-divider-3",
+      "type": "box",
+      "attributes": {
+        "name": "Short Cabinet Divider 3",
+        "description": "Divider plank in short cabinet",
+        "position": { "x": -1.7, "y": 0.45, "z": -1.1 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 0.6, "y": 0.85, "z": 0.02 },
+        "material": { "color": "#8b4513", "roughness": 0.7, "metalness": 0 }
+      },
+      "parentId": "cabinet-plank-group"
+    },
+    {
+      "id": "light-1",
+      "type": "light",
+      "attributes": {
+        "name": "Ceiling Light 1",
+        "description": "Main ceiling light",
+        "position": { "x": 0, "y": 2.8, "z": 0 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 },
+        "color": "#ffffff",
+        "intensity": 1,
+        "distance": 10,
+        "decay": 2
+      },
+      "parentId": null
+    },
+    {
+      "id": "light-2",
+      "type": "light",
+      "attributes": {
+        "name": "Counter Light",
+        "description": "Light above counter",
+        "position": { "x": 0, "y": 2.5, "z": -1.45 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 },
+        "color": "#fff5e0",
+        "intensity": 0.7,
+        "distance": 5,
+        "decay": 2
+      },
+      "parentId": null
+    },
+    {
+      "id": "light-3",
+      "type": "light",
+      "attributes": {
+        "name": "Table Light",
+        "description": "Light above table",
+        "position": { "x": 1.5, "y": 2.5, "z": 0.5 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 },
+        "color": "#fff5e0",
+        "intensity": 0.7,
+        "distance": 5,
+        "decay": 2
+      },
+      "parentId": null
+    }
+  ]
+}

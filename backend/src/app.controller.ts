@@ -8,12 +8,13 @@ import {
   Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { AppService } from './app.service';
 import { Response } from 'express';
-
+import { ConversationService } from './api/conversation/conversation.service';
+import { User } from './decorators/user.decorator';
+import { User as UserEntity } from './entities/User.entity';
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(private readonly conversationService: ConversationService) {}
 
   @Post('speech-to-text')
   @UseInterceptors(FileInterceptor('audio'))
@@ -21,7 +22,9 @@ export class AppController {
     @UploadedFile() file: Express.Multer.File,
     @Res() res: Response,
   ) {
-    const { text, language } = await this.appService.speechToText(file.buffer);
+    const { text, language } = await this.conversationService.speechToText(
+      file.buffer,
+    );
     return res.json({ text, language });
   }
 
@@ -29,8 +32,9 @@ export class AppController {
   async streamResponse(
     @Query('prompt') prompt: string,
     @Query('language') language: string,
-    @Query('conversationName') conversationName: string,
+    @Query('conversationId') conversationId: number,
     @Query('sceneId') sceneId: number,
+    @User() user: UserEntity,
     @Res() res: Response,
   ) {
     try {
@@ -38,11 +42,12 @@ export class AppController {
       res.setHeader('Cache-Control', 'no-cache');
       res.setHeader('Connection', 'keep-alive');
 
-      await this.appService.streamResponse(
+      await this.conversationService.streamResponse(
         prompt,
         language,
-        conversationName,
+        Number(conversationId),
         Number(sceneId),
+        user.id,
         res,
       );
 

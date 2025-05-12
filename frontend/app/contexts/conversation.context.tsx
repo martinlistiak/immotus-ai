@@ -9,6 +9,8 @@ import {
   type SetStateAction,
 } from "react";
 import { useSceneContext } from "app/pages/EditorPage/Scene/Scene.context";
+import { axiosInstance } from "app/api/client";
+import type { SceneObjects } from "app/types/scene-ast";
 export type Conversation = {
   id: string;
   name: string;
@@ -58,7 +60,6 @@ export const ConversationContextProvider = ({
   const streamRef = useRef<MediaStream | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
-  const eventSourceRef = useRef<EventSource | null>(null);
   const audioQueue = useRef<string[]>([]);
   const isPlayingRef = useRef(false);
   const audioContext = useRef<AudioContext | null>(null);
@@ -89,15 +90,6 @@ export const ConversationContextProvider = ({
       setConversation(null);
     }
   }, [selectedObjects]);
-
-  useEffect(() => {
-    // Clean up EventSource when component unmounts
-    return () => {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-      }
-    };
-  }, []);
 
   // Initialize audio context on user interaction to comply with browser policies
   const initAudioContext = () => {
@@ -179,36 +171,32 @@ export const ConversationContextProvider = ({
     // Add user message to history
     setMessages((prev) => [...prev, { text, type: "user" }]);
 
-    // Close any existing SSE connection
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close();
-    }
+    const url = `${
+      import.meta.env.VITE_API_URL
+    }/stream-response?prompt=${encodeURIComponent(
+      text
+    )}&language=${language}&conversationId=${conversation?.id}&sceneId=${
+      scene?.id
+    }`;
+    const eventSource = new EventSource(url, { withCredentials: true });
 
     let currentAssistantMessage = "";
 
-    // Create a new EventSource connection
-    const eventSource = new EventSource(
-      `${
-        import.meta.env.VITE_API_URL
-      }/stream-response?prompt=${encodeURIComponent(
-        text
-      )}&language=${language}&conversationName=${"default"}&sceneId=${
-        scene?.id
-      }`
-    );
-    eventSourceRef.current = eventSource;
-
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);
+
       if (data.type === "tool_use") {
+        // Handle tool use cases
         if (data.content.type === "SET_SCENE") {
           dispatchScene({
             type: "SET_SCENE",
             payload: {
-              scene: data.content.scene,
+              scene: {
+                ...scene,
+                objects: data.content.scene.objects as SceneObjects,
+              },
             },
           });
-          // Add tool message to history
           setMessages((prev) => [
             ...prev,
             {
@@ -218,17 +206,10 @@ export const ConversationContextProvider = ({
             },
           ]);
         } else if (data.content.type === "GET_SCENE") {
-          dispatchScene({
-            type: "SET_SCENE",
-            payload: {
-              scene: data.content.scene,
-            },
-          });
+          // Handle GET_SCENE
         }
       } else if (data.type === "text") {
-        // Update the current assistant message
         currentAssistantMessage += data.content;
-        // Update the messages with the current progress
         setMessages((prev) => {
           const newMessages = [...prev];
           const lastMessage = newMessages[newMessages.length - 1];

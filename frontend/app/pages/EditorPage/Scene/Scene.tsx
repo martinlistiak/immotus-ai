@@ -29,7 +29,7 @@ import { PrimitivePlacer } from "./objects/PrimitivePlacer";
 import { BoxHelper } from "./helpers/BoxHelper";
 import { TechnicalDrawingView } from "./helpers/TechnicalDrawingsView";
 import { SceneObject } from "./objects/SceneObject";
-
+import Untitled from "./Untitled-1.json";
 const SceneEnvironment = () => {
   return <Environment preset="studio" background blur={1} />;
 };

@@ -14,9 +14,8 @@ export const AUTH_COOKIE_KEY = "auth_token";
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const queryClient = useQueryClient();
   const {
-    data: user,
+    data: userResponse,
     isPending: isLoadingUser,
-    error: userError,
     refetch,
   } = useQuery({
     queryKey: ["user"],
@@ -49,12 +48,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  if (!user) {
+  if (!userResponse) {
     return <LoginPage isLoadingLogin={isLoadingLogin} login={login} />;
   }
 
   return (
-    <AuthContext.Provider value={{ user, logout, login }}>
+    <AuthContext.Provider value={{ user: userResponse.user, logout, login }}>
       {children}
     </AuthContext.Provider>
   );

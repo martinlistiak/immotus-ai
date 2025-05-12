@@ -12,11 +12,6 @@ export const tools = [
           type: 'object',
           description: 'Clears the scene and sets the new scene',
           properties: {
-            id: { type: 'string' },
-            name: { type: 'string' },
-            description: { type: 'string' },
-            createdAt: { type: 'string' },
-            updatedAt: { type: 'string' },
             objects: {
               type: 'array',
               items: {
@@ -498,14 +493,7 @@ export const tools = [
               },
             },
           },
-          required: [
-            'id',
-            'name',
-            'description',
-            'createdAt',
-            'updatedAt',
-            'objects',
-          ],
+          required: ['objects'],
         },
       },
       required: ['scene'],

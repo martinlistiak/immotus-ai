@@ -68,6 +68,7 @@ export const RightPanel = () => {
           value={message}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
+              e.preventDefault();
               submitMessage(message);
               setMessage("");
             } else if (e.key === "Backspace") {
