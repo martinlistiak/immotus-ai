@@ -15,12 +15,16 @@ ARG GOOGLE_CLIENT_SECRET
 ARG AUTH_SECRET
 ARG FRONTEND_URL
 
-# Configure yarn
-RUN yarn config set nodeLinker node-modules
+# Configure Yarn to use node-modules linker
+COPY .yarnrc.yml .yarnrc.yml
+# Ensure .yarn directory is copied
+COPY .yarn .yarn
 
-# Install dependencies with proper workspace setup
+# Install dependencies properly for all workspaces
 RUN yarn install
-# Build all workspaces
-RUN yarn build
+
+# Build all workspaces in the correct order
+RUN cd frontend && yarn build && cd .. && cd backend && yarn build && cd ..
+
 CMD ["yarn", "start:prod"]
 
