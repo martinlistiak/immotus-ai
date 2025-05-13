@@ -15,6 +15,9 @@ ARG GOOGLE_CLIENT_SECRET
 ARG AUTH_SECRET
 ARG FRONTEND_URL
 
+# Configure yarn
+RUN yarn config set nodeLinker node-modules
+
 # Install dependencies with proper workspace setup
 RUN yarn install
 # Build all workspaces
