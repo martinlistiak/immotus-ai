@@ -7,6 +7,7 @@ import {
   OneToMany,
   ManyToMany,
   JoinTable,
+  Index,
 } from 'typeorm';
 import { Conversation } from './Conversation.entity';
 import { Scene } from './Scene.entity';
@@ -30,6 +31,7 @@ export class User {
   lastName: string;
 
   @Column({ nullable: true })
+  @Index()
   email: string;
 
   @Column({ nullable: true })
