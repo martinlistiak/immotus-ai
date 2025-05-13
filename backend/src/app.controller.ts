@@ -12,16 +12,14 @@ import { Response } from 'express';
 import { ConversationService } from './api/conversation/conversation.service';
 import { User } from './decorators/user.decorator';
 import { User as UserEntity } from './entities/User.entity';
+
 @Controller()
 export class AppController {
   constructor(private readonly conversationService: ConversationService) {}
 
   @Post('speech-to-text')
   @UseInterceptors(FileInterceptor('audio'))
-  async speechToText(
-    @UploadedFile() file: Express.Multer.File,
-    @Res() res: Response,
-  ) {
+  async speechToText(@UploadedFile() file: any, @Res() res: Response) {
     const { text, language } = await this.conversationService.speechToText(
       file.buffer,
     );
