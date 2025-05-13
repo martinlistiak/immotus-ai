@@ -15,7 +15,13 @@ ARG GOOGLE_CLIENT_SECRET
 ARG AUTH_SECRET
 ARG FRONTEND_URL
 
-RUN yarn
+# Use the correct Yarn version as defined in package.json
+RUN corepack enable
+RUN corepack prepare yarn@4.9.1 --activate
+
+# Install dependencies with proper workspace setup
+RUN yarn install --immutable
+# Build all workspaces
 RUN yarn build
 CMD ["yarn", "start:prod"]
 
