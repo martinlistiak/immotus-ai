@@ -19,9 +19,22 @@ export const databaseProviders = [
         database: process.env.DB_NAME,
         entities: [User, Conversation, Scene],
         synchronize: true,
+        connectTimeoutMS: 30000,
+        logging: true,
+        logger: 'advanced-console',
       });
 
-      return dataSource.initialize();
+      try {
+        console.log(
+          `Attempting to connect to database at ${process.env.DB_HOST}:${process.env.DB_PORT}`,
+        );
+        const connection = await dataSource.initialize();
+        console.log('Database connection established successfully');
+        return connection;
+      } catch (error) {
+        console.error('Database connection failed:', error);
+        throw error;
+      }
     },
   },
 ];
