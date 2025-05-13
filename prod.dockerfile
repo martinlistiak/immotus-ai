@@ -14,6 +14,7 @@ ARG GOOGLE_CLIENT_ID
 ARG GOOGLE_CLIENT_SECRET
 ARG AUTH_SECRET
 ARG FRONTEND_URL
+ARG VITE_API_URL
 
 # Make sure we use a compatible node linker strategy
 RUN yarn config set nodeLinker node-modules
