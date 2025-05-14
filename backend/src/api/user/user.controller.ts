@@ -37,6 +37,7 @@ export class UserController {
       const user = await this.userRepository.findOne({
         where: { email: body.email },
       });
+      console.log(user);
       if (!user) {
         return { error: 'User not found' };
       }
