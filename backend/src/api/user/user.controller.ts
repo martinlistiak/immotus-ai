@@ -34,21 +34,9 @@ export class UserController {
     @Res() res: Response,
   ) {
     try {
-      // Set a timeout for this query
-      const queryRunner =
-        this.userRepository.manager.connection.createQueryRunner();
-      await queryRunner.connect();
-
-      // Set statement timeout to 5 seconds
-      await queryRunner.query('SET statement_timeout = 5000');
-
-      // Use the query runner instead of repository directly
-      const user = await queryRunner.manager.findOne(UserEntity, {
+      const user = await this.userRepository.findOne({
         where: { email: body.email },
       });
-
-      await queryRunner.release();
-
       if (!user) {
         return { error: 'User not found' };
       }
@@ -74,8 +62,8 @@ export class UserController {
 
       return { user: rest };
     } catch (error) {
-      console.error('Login query error:', error);
-      throw new InternalServerErrorException('Database query timeout or error');
+      console.error(error);
+      throw new InternalServerErrorException(error);
     }
   }
 

@@ -22,6 +22,13 @@ export const databaseProviders = [
         connectTimeoutMS: 30000,
         logging: true,
         logger: 'advanced-console',
+        poolSize: 20,
+        extra: {
+          max: 20,
+          idleTimeoutMillis: 30000,
+          connectionTimeoutMillis: 5000,
+          keepAlive: true,
+        },
       });
 
       try {
