@@ -43,8 +43,12 @@ export class UserController {
       }
       const valid = await bcrypt.compare(body.password, user.password);
 
+      console.log(valid);
+
       if (!valid) {
-        return { error: 'Invalid password' };
+        // @ts-ignore
+        res.status(200).json({ error: 'Invalid password' });
+        return;
       }
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
