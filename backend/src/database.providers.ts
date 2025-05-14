@@ -41,26 +41,6 @@ export const databaseProviders = [
         await connection.query('SELECT 1');
         console.log('Database connection verified with test query');
 
-        // Add ping function to periodically check connection
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        setInterval(async () => {
-          try {
-            await connection.query('SELECT 1');
-          } catch (error) {
-            console.error(
-              'Connection ping failed, attempting reconnect:',
-              error,
-            );
-            try {
-              await connection.destroy();
-              await connection.initialize();
-              console.log('Database reconnected successfully');
-            } catch (reconnectError) {
-              console.error('Reconnect failed:', reconnectError);
-            }
-          }
-        }, 30000); // Ping every 30 seconds
-
         return connection;
       } catch (error) {
         console.error('Database connection failed:', error);
