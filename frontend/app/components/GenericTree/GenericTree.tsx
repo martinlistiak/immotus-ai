@@ -18,6 +18,12 @@ export interface DragItem {
   name: string;
 }
 
+// Drop result interface
+export interface DropResult {
+  target?: string;
+  [key: string]: any;
+}
+
 export interface ContextMenuOption {
   label: string;
   onClick: () => void;
@@ -110,11 +116,6 @@ const HorizontalLine = () => {
   );
 };
 
-// Drop position indicator
-const DropIndicator = () => {
-  return <div className="absolute left-0 right-0 h-[2px] bg-blue-500 z-20" />;
-};
-
 const TreeNode = ({
   node,
   level,
@@ -179,6 +180,22 @@ const TreeNode = ({
       isDragging: monitor.isDragging(),
     }),
     end: (item, monitor) => {
+      const dropResult = monitor.getDropResult() as DropResult | null;
+
+      // If the item was dropped on a recognized target
+      if (dropResult) {
+        // If it's dropped on an external target (like the scene)
+        if (dropResult.target === "scene") {
+          if (onDragEnd) {
+            // For an external drop, we don't need to move in the tree
+            // so we just pass the item id and empty strings for other params
+            onDragEnd(node.id, "", "");
+          }
+          return;
+        }
+      }
+
+      // Handle case when not dropped on a valid target
       if (!monitor.didDrop() && onDragEnd) {
         onDragEnd(node.id, node.id, node.parentId || "");
       }
@@ -373,7 +390,7 @@ const TreeNode = ({
               }}
             />
           ) : (
-            <div className="border border-transparent w-full -m-1 p-1 rounded-sm h-[26px] text-ellipsis overflow-hidden whitespace-nowrap">
+            <div className="border border-transparent w-full max-w-full -m-1 p-1 rounded-sm h-[26px] text-ellipsis overflow-hidden whitespace-nowrap">
               {node.name}
             </div>
           )}

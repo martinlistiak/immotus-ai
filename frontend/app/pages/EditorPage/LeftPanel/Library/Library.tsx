@@ -8,12 +8,14 @@ import {
 } from "react-icons/fi";
 import { Spinner } from "app/components/Spinner";
 import { useLibraryContext } from "app/contexts/library.context";
-import type { FolderStructureItem } from "app/types/file";
+import type { FileType } from "app/types/file";
 import { GenericTree } from "app/components/GenericTree/GenericTree";
 import type { TreeNodeData } from "app/components/GenericTree/GenericTree";
 import type { ObjectType } from "app/types/scene-ast";
 import cn from "classnames";
 import { GenericDragLayer } from "app/components/GenericTree/DragLayer";
+import { useSceneContext } from "app/pages/EditorPage/Scene/Scene.context";
+import { importGltf } from "app/utils/importers";
 
 // Create a custom icon component for library files
 const LibraryIcon = ({ type }: { type: string }) => {
@@ -35,29 +37,25 @@ export const Library = () => {
     isLoadingStructure,
     deleteFile,
     uploadFiles,
-    folderStructure,
+    files,
     isUploadingFiles,
   } = useLibraryContext();
+  console.log(files);
+
+  const { dispatchScene } = useSceneContext();
 
   // Handle download
   const handleDownload = (fileId: number, fileName: string) => {
     window.open(`/file/download/${fileId}`, "_blank");
   };
 
-  const formatFileSize = (bytes: number): string => {
-    if (bytes < 1024) return bytes + " B";
-    else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
-    else if (bytes < 1073741824) return (bytes / 1048576).toFixed(1) + " MB";
-    else return (bytes / 1073741824).toFixed(1) + " GB";
-  };
-
-  // Convert FolderStructureItem[] to TreeNodeData[]
+  // Convert FileType[] to TreeNodeData[]
   const convertToTreeData = (
-    items: FolderStructureItem[],
+    items: FileType[],
     parentId?: string
   ): TreeNodeData[] => {
     return items.map((item) => {
-      const id = item.id ? item.id.toString() : item.name + "-" + item.time;
+      const id = item.id ? item.id.toString() : item.name;
 
       return {
         id,
@@ -68,16 +66,13 @@ export const Library = () => {
         // Add original item for reference
         _original: item,
         // Recursively convert children if present
-        children:
-          item.type === "directory" && item.contents
-            ? convertToTreeData(item.contents, id)
-            : undefined,
+        children: [],
       };
     });
   };
 
   // Convert folder structure to tree data
-  const treeData = folderStructure ? convertToTreeData(folderStructure) : [];
+  const treeData = files ? convertToTreeData(files) : [];
 
   // Handle node selection
   const handleSelectNode = (
@@ -154,37 +149,63 @@ export const Library = () => {
     setHoveredNodeId(nodeId);
   };
 
-  const handleDragEnd = (
+  // Determine if a file can be imported based on its extension
+  const canImportFile = (nodeData: TreeNodeData | null): boolean => {
+    if (!nodeData || nodeData.type === "directory") return false;
+
+    const extension = nodeData.name.split(".").pop();
+
+    // Check if it's a supported format (currently only GLTF)
+    return extension === "gltf" || extension === "glb";
+  };
+
+  const handleDragEnd = async (
     nodeId: string,
     beforeNodeId: string,
     newParentId: string
   ) => {
-    // Handle file organization here
-    console.log(
-      `Moving file ${nodeId} before ${beforeNodeId || "(end)"} under parent ${
-        newParentId || "(root)"
-      }`
-    );
+    console.log(`Attempting to import file ${nodeId} from library to scene`);
 
-    // For now, just log the action
-    // In a real implementation, you would call an API to update the file structure with the new order
-    // For example:
-    // const requestBody = {
-    //   fileId: nodeId,
-    //   targetParentId: newParentId || null,
-    //   targetBeforeId: beforeNodeId || null
-    // };
-    // updateFileOrganization(requestBody);
+    // Find the node data
+    const nodeData = findNodeById(treeData, nodeId);
+    if (!canImportFile(nodeData)) {
+      console.log("File cannot be imported - unsupported format");
+      setHoveredNodeId(null);
+      return;
+    }
 
-    setHoveredNodeId(null);
-  };
+    try {
+      // Get the file information
+      console.log(nodeData);
+      const fileId = Number(nodeData!.id);
+      if (isNaN(fileId)) {
+        throw new Error("Invalid file ID");
+      }
 
-  // Handle visibility toggle (not implemented for library files yet)
-  const handleToggleVisibility = (nodeId: string, isHidden: boolean) => {
-    // This function is included for API consistency but doesn't do anything for library files yet
-    console.log(
-      `Toggle visibility of ${nodeId} to ${isHidden ? "visible" : "hidden"}`
-    );
+      // Construct the file URL
+      const fileUrl = `${import.meta.env.VITE_API_URL}/file/download/${fileId}`;
+
+      // Import the file based on its type
+      const importedObjects = await importGltf(fileUrl);
+
+      // console.log(importedObjects);
+
+      // Add the imported objects to the scene
+      importedObjects.forEach((object) => {
+        dispatchScene({
+          type: "ADD_OBJECT",
+          payload: { object },
+        });
+      });
+
+      console.log(
+        `Successfully imported ${importedObjects.length} objects to the scene`
+      );
+    } catch (error) {
+      console.error("Error importing file:", error);
+    } finally {
+      setHoveredNodeId(null);
+    }
   };
 
   if (isLoadingFiles || isLoadingStructure) {
@@ -240,7 +261,6 @@ export const Library = () => {
               allowRenaming={false}
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
-              onToggleVisibility={handleToggleVisibility}
             />
             <GenericDragLayer
               renderIcon={(type) => <LibraryIcon type={type} />}

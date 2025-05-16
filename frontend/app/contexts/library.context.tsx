@@ -51,7 +51,7 @@ export const LibraryContextProvider = ({
   });
 
   // Delete file mutation
-  const { mutate: deleteFile } = useMutation({
+  const { mutateAsync: deleteFile } = useMutation({
     mutationFn: async (fileId: number) => {
       const response = await axiosInstance.delete(`/file/${fileId}`);
       return response.data;
@@ -61,6 +61,23 @@ export const LibraryContextProvider = ({
       queryClient.invalidateQueries({
         queryKey: ["folder-structure", user?.id],
       });
+    },
+  });
+
+  const { mutateAsync: downloadFile } = useMutation({
+    mutationFn: async (fileId: number) => {
+      const response = await axiosInstance.get(`/file/download/${fileId}`);
+      return response.data;
+    },
+    onSuccess: (response) => {
+      const url = window.URL.createObjectURL(new Blob([response]));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "download";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
     },
   });
 
@@ -110,6 +127,7 @@ export const LibraryContextProvider = ({
         isLoadingStructure,
         deleteFile,
         uploadFiles,
+        downloadFile,
         folderStructure: folderStructure || [],
       }}
     >

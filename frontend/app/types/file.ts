@@ -18,12 +18,7 @@ export type FileType = {
 
 export type FolderStructureItem = {
   name: string;
-  type: string;
+  size: number;
   time: number;
-  size?: number;
-  id?: number;
-  description?: string;
-  extension?: string;
-  thumbnailUrl?: string | null;
-  contents?: FolderStructureItem[];
+  type: string;
 };

@@ -6,7 +6,7 @@ import {
   OrthographicCamera,
 } from "@react-three/drei";
 import { Canvas, useThree } from "@react-three/fiber";
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext, useRef } from "react";
 import { Color, Vector3 } from "three";
 import { useSceneContext, SceneExportContext } from "./Scene.context";
 import {
@@ -30,6 +30,9 @@ import { BoxHelper } from "./helpers/BoxHelper";
 import { TechnicalDrawingView } from "./helpers/TechnicalDrawingsView";
 import { SceneObject } from "./objects/SceneObject";
 import Untitled from "./Untitled-1.json";
+import { useDrop } from "react-dnd";
+import { ItemTypes } from "app/components/GenericTree/GenericTree";
+
 const SceneEnvironment = () => {
   return <Environment preset="studio" background blur={1} />;
 };
@@ -69,6 +72,24 @@ export function Scene({ ...props }) {
     selectedObjects,
   } = useSceneContext();
   const [ghostPosition, setGhostPosition] = useState<Vector3 | null>(null);
+  const sceneRef = useRef<HTMLDivElement>(null);
+
+  // Set up drop zone for library items
+  const [{ isOver, canDrop }, drop] = useDrop({
+    accept: ItemTypes.TREE_NODE,
+    drop: () => ({ target: "scene" }),
+    collect: (monitor) => ({
+      isOver: monitor.isOver(),
+      canDrop: monitor.canDrop(),
+    }),
+  });
+
+  // Apply the drop ref to our scene ref
+  useEffect(() => {
+    if (sceneRef.current) {
+      drop(sceneRef);
+    }
+  }, [drop]);
 
   const handlePlacePrimitive = (position: Vector3) => {
     // Create a new primitive based on active tool
@@ -224,7 +245,10 @@ export function Scene({ ...props }) {
   return (
     <div
       id="scene"
-      className="w-[100vw] h-[100vh]"
+      ref={sceneRef}
+      className={`w-[100vw] h-[100vh] ${
+        isOver && canDrop ? "outline-dashed outline-2 outline-blue-500" : ""
+      }`}
       onPointerDown={handlePointerDown}
     >
       <Canvas
@@ -300,26 +324,13 @@ export function Scene({ ...props }) {
         <group {...props} dispose={null}>
           <scene name={scene?.name}>
             {scene?.objects
-              .filter((obj) => obj.parentId === null)
+              ?.filter((obj) => obj.parentId === null)
               .filter((obj) => !hiddenObjectIds.includes(obj.id))
               .map((object) => {
                 const isSelected = selectedObjects.some(
                   (obj) => obj.id === object.id
                 );
-                return (
-                  // <group
-                  //   userData={{ type: "sceneObject", id: object.id }}
-                  //   key={object.id}
-                  //   onPointerDown={(e) => {
-                  //     e.stopPropagation();
-                  //     // setSelectedObjects([object.id]);
-                  //   }}
-                  // >
-                  //   <PivotControls autoTransform enabled={isSelected}>
-                  <SceneObject key={object.id} object={object} />
-                  // </PivotControls>
-                  // </group>
-                );
+                return <SceneObject key={object.id} object={object} />;
               })}
 
             {/* Only show directional light in 3D mode */}
@@ -330,6 +341,15 @@ export function Scene({ ...props }) {
           </scene>
         </group>
       </Canvas>
+
+      {/* Visual indicator when dragging over */}
+      {isOver && canDrop && (
+        <div className="absolute z-50 inset-0 pointer-events-none border-2 border-active bg-opacity-10 flex items-center justify-center bg-[rgba(0,0,0,0.6)]">
+          <div className="bg-active rounded-xl text-white px-4 py-2">
+            Drop to Import
+          </div>
+        </div>
+      )}
     </div>
   );
 }

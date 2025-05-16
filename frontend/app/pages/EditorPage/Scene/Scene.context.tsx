@@ -227,10 +227,13 @@ export const SceneContextProvider = ({
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
+        return;
+      }
       if (e.key === "Backspace") {
-        if (e.target instanceof HTMLInputElement) {
-          return;
-        }
         removeObjects(selectedObjects.map((object) => object.id));
       } else if (e.key === "z" && (e.ctrlKey || e.metaKey) && e.shiftKey) {
         redo();

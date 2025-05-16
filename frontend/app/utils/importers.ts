@@ -6,6 +6,8 @@ import type {
   AbstractSyntaxTree,
   ObjectAttributes,
   ObjectType,
+  MeshAttributes,
+  BaseObjectWithMaterialAttributes,
 } from "../types/scene-ast";
 
 export const importGltf = async (gltfUrl: string): Promise<SceneObjects> => {
@@ -17,7 +19,12 @@ export const importGltf = async (gltfUrl: string): Promise<SceneObjects> => {
     loader.load(
       gltfUrl,
       (gltf) => {
+        console.log("Loaded GLTF:", gltf);
         const sceneObjects: SceneObjects = [];
+
+        // Create a temporary scene to process the geometries
+        const tempScene = new THREE.Scene();
+        tempScene.add(gltf.scene);
 
         // Process all objects in the GLTF scene
         gltf.scene.traverse((object) => {
@@ -26,7 +33,6 @@ export const importGltf = async (gltfUrl: string): Promise<SceneObjects> => {
 
           const mesh = object as THREE.Mesh;
           let objectType: ObjectType = "mesh";
-          let attributes: ObjectAttributes;
 
           // Try to determine the primitive type based on geometry
           if (mesh.geometry instanceof THREE.BoxGeometry) {
@@ -57,23 +63,39 @@ export const importGltf = async (gltfUrl: string): Promise<SceneObjects> => {
             objectType = "torusknot";
           }
 
+          // Get the world position/rotation/scale
+          const worldPosition = new THREE.Vector3();
+          const worldQuaternion = new THREE.Quaternion();
+          const worldScale = new THREE.Vector3();
+          mesh.updateWorldMatrix(true, false);
+          mesh.matrixWorld.decompose(
+            worldPosition,
+            worldQuaternion,
+            worldScale
+          );
+
+          // Convert quaternion to Euler angles
+          const worldRotation = new THREE.Euler().setFromQuaternion(
+            worldQuaternion
+          );
+
           // Extract position, rotation and scale
           const position = {
-            x: mesh.position.x,
-            y: mesh.position.y,
-            z: mesh.position.z,
+            x: worldPosition.x,
+            y: worldPosition.y,
+            z: worldPosition.z,
           };
 
           const rotation = {
-            x: mesh.rotation.x,
-            y: mesh.rotation.y,
-            z: mesh.rotation.z,
+            x: worldRotation.x,
+            y: worldRotation.y,
+            z: worldRotation.z,
           };
 
           const scale = {
-            x: mesh.scale.x,
-            y: mesh.scale.y,
-            z: mesh.scale.z,
+            x: worldScale.x,
+            y: worldScale.y,
+            z: worldScale.z,
           };
 
           // Extract material properties
@@ -82,7 +104,11 @@ export const importGltf = async (gltfUrl: string): Promise<SceneObjects> => {
           let metalness = 0.2;
 
           if (mesh.material) {
-            const material = mesh.material as THREE.MeshStandardMaterial;
+            // Handle both single materials and material arrays
+            const material = Array.isArray(mesh.material)
+              ? (mesh.material[0] as THREE.MeshStandardMaterial)
+              : (mesh.material as THREE.MeshStandardMaterial);
+
             if (material.color) {
               color = "#" + material.color.getHexString();
             }
@@ -95,7 +121,7 @@ export const importGltf = async (gltfUrl: string): Promise<SceneObjects> => {
           }
 
           // Create base attributes
-          const baseAttributes = {
+          const baseAttributes: BaseObjectWithMaterialAttributes = {
             name: mesh.name || `Imported ${objectType}`,
             description: "",
             position,
@@ -108,13 +134,59 @@ export const importGltf = async (gltfUrl: string): Promise<SceneObjects> => {
             },
           };
 
+          let finalAttributes: ObjectAttributes;
+
+          // For mesh type, extract the geometry data
+          if (
+            objectType === "mesh" &&
+            mesh.geometry instanceof THREE.BufferGeometry
+          ) {
+            // Clone the geometry to avoid modifying the original
+            const clonedGeometry = mesh.geometry.clone();
+
+            // Apply the mesh's matrix transform to the geometry
+            const transformMatrix = new THREE.Matrix4();
+            // Reset position/rotation/scale for the geometry since we'll apply them separately
+            transformMatrix.makeScale(1, 1, 1); // Identity scale
+            clonedGeometry.applyMatrix4(transformMatrix);
+
+            // Ensure normals are computed
+            clonedGeometry.computeVertexNormals();
+            clonedGeometry.normalizeNormals();
+
+            const positionAttribute = clonedGeometry.getAttribute("position");
+
+            if (positionAttribute) {
+              // Create array from position attribute
+              const geometryArray = Array.from(positionAttribute.array);
+
+              finalAttributes = {
+                ...baseAttributes,
+                geometry: geometryArray,
+              } as MeshAttributes;
+
+              console.log(
+                `Extracted geometry for ${mesh.name || "unnamed mesh"} with ${
+                  geometryArray.length / 3
+                } vertices`
+              );
+            } else {
+              console.warn(
+                `No position attribute found for mesh ${mesh.name || "unnamed"}`
+              );
+              finalAttributes = baseAttributes as ObjectAttributes;
+            }
+          } else {
+            finalAttributes = baseAttributes as ObjectAttributes;
+          }
+
           // Create the scene object based on type
           const sceneObject: AbstractSyntaxTree<ObjectAttributes> = {
             id: uuid(),
             type: objectType,
             parentId:
               mesh.parent === gltf.scene ? null : mesh.parent?.uuid || null,
-            attributes: baseAttributes as ObjectAttributes,
+            attributes: finalAttributes,
           };
 
           sceneObjects.push(sceneObject);
@@ -129,6 +201,11 @@ export const importGltf = async (gltfUrl: string): Promise<SceneObjects> => {
           ) {
             const light = object as THREE.Light;
 
+            // Get world position for the light
+            const worldPosition = new THREE.Vector3();
+            light.updateMatrixWorld(true);
+            light.getWorldPosition(worldPosition);
+
             const lightObject: AbstractSyntaxTree<ObjectAttributes> = {
               id: uuid(),
               type: "light",
@@ -138,9 +215,9 @@ export const importGltf = async (gltfUrl: string): Promise<SceneObjects> => {
                 name: light.name || "Imported Light",
                 description: "",
                 position: {
-                  x: light.position.x,
-                  y: light.position.y,
-                  z: light.position.z,
+                  x: worldPosition.x,
+                  y: worldPosition.y,
+                  z: worldPosition.z,
                 },
                 rotation: {
                   x: light.rotation.x,
@@ -165,9 +242,15 @@ export const importGltf = async (gltfUrl: string): Promise<SceneObjects> => {
           }
         });
 
+        // Clean up
+        tempScene.remove(gltf.scene);
+
+        console.log(`Imported ${sceneObjects.length} objects from GLTF`);
         resolve(sceneObjects);
       },
-      undefined,
+      (progressEvent) => {
+        console.log("Loading progress:", progressEvent);
+      },
       (error) => {
         console.error("Error loading GLTF:", error);
         reject(error);

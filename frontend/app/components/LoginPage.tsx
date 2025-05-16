@@ -17,8 +17,11 @@ export const LoginPage = ({
         <div className="text-6xl font-cal-sans text-gray-200 tracking-tight mb-4">
           IM.
         </div>
-        <h1 className="text-2xl font-cal-sans text-gray-200 tracking-wide mb-1">
+        <h1 className="text-2xl font-cal-sans text-gray-200 tracking-wide mb-4 relative">
           Welcome to Immotus!
+          <span className="absolute top-[2px] -right-8 text-xs text-active-hover">
+            Beta
+          </span>
         </h1>
         <p className="text-center text-gray-400 mb-6">
           Login to your account using your email and password.
@@ -44,7 +47,7 @@ export const LoginPage = ({
           type="button"
           onClick={() => login({ email, password })}
           className={cn(
-            "rounded-md bg-[rgba(255,255,255,0.1)] w-[200px] py-2 text-white border border-gray-700 font-normal text-sm cursor-pointer hover:bg-[rgba(255,255,255,0.2)] transition-colors duration-50",
+            "rounded-md bg-[rgba(255,255,255,0.1)] w-[200px] h-[38px] py-2 text-white border border-gray-700 font-normal text-sm cursor-pointer hover:bg-[rgba(255,255,255,0.2)] transition-colors duration-50",
             {
               "!cursor-default pointer-events-none": isLoadingLogin,
             }
@@ -52,7 +55,7 @@ export const LoginPage = ({
         >
           {isLoadingLogin ? (
             <div className="flex items-center justify-center">
-              <Spinner size={16} />
+              <Spinner size="sm" />
             </div>
           ) : (
             "Continue"

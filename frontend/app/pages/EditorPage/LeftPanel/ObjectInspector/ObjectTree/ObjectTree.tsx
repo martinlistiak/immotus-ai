@@ -158,7 +158,7 @@ export const ObjectTree = ({
       {
         label: "Delete",
         onClick: () => {
-          removeObjects([nodeId]);
+          removeObjects(selectedObjects.map((o) => o.id));
         },
       },
     ];

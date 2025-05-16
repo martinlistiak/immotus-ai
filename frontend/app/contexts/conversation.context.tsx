@@ -197,17 +197,36 @@ export const ConversationContextProvider = ({
               } as SceneType,
             },
           });
-          setMessages((prev) => [
-            ...prev,
-            {
-              text: JSON.stringify(data.content, null, 2),
-              type: "tool",
-              toolName: "SET_SCENE",
+        } else if (data.content.type === "ADD_OBJECTS") {
+          dispatchScene({
+            type: "ADD_OBJECT",
+            payload: {
+              object: data.content.object as SceneObjects[0],
             },
-          ]);
-        } else if (data.content.type === "GET_SCENE") {
-          // Handle GET_SCENE
+          });
+        } else if (data.content.type === "REMOVE_OBJECTS") {
+          dispatchScene({
+            type: "REMOVE_OBJECTS",
+            payload: {
+              objectIds: data.content.objectIds,
+            },
+          });
+        } else if (data.content.type === "DUPLICATE_OBJECTS") {
+          dispatchScene({
+            type: "DUPLICATE_OBJECTS",
+            payload: {
+              objectIds: data.content.objectIds,
+            },
+          });
         }
+        setMessages((prev) => [
+          ...prev,
+          {
+            text: JSON.stringify(data.content, null, 2),
+            type: "tool",
+            toolName: data.content.type,
+          },
+        ]);
       } else if (data.type === "text") {
         currentAssistantMessage += data.content;
         setMessages((prev) => {

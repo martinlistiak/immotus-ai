@@ -36,6 +36,15 @@ export const ObjectInspector = () => {
   return (
     <DndProvider>
       <ObjectTree nodes={nodes} level={0} />
+      {!nodes.length && (
+        <div className="p-4 flex items-center justify-center h-full text-[10px] text-gray-500 flex-col">
+          <p className="">
+            <i>"When we build, let us think that we build forever."</i>
+            <br />
+          </p>
+          <p className="text-right w-full pr-4">- John Ruskin</p>
+        </div>
+      )}
     </DndProvider>
   );
 };

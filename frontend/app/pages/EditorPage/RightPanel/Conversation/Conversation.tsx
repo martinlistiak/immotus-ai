@@ -63,9 +63,11 @@ export const Conversation = () => {
                       See the tool payload
                     </span>
                     {expandedToolPayloadIndex === index && (
-                      <pre className="text-xs text-gray-400 whitespace-pre-wrap break-words bg-gray-900 rounded-md p-2 w-fit overflow-x-auto">
-                        {message.text}
-                      </pre>
+                      <div className="w-full overflow-x-auto">
+                        <pre className="whitespace-pre text-xs text-gray-400 bg-gray-900 rounded-md p-2 w-fit overflow-x-auto">
+                          {message.text}
+                        </pre>
+                      </div>
                     )}
                   </div>
                 )}
