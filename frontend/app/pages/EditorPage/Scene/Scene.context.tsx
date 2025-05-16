@@ -357,7 +357,11 @@ export const useSceneHoverContext = () => {
 
 export const SceneDragAndDropContext = createContext({
   onDragStart: (_objectId: string) => {},
-  onDragEnd: (_objectId: string, _parentId: string) => {},
+  onDragEnd: (
+    _objectId: string,
+    _nextInGroupIndex: string,
+    _parentId: string
+  ) => {},
   draggingObject: null as AbstractSyntaxTree<ObjectAttributes> | null,
 });
 
@@ -377,11 +381,15 @@ export const SceneDragAndDropContextProvider = ({
     }
   };
 
-  const onDragEnd = (objectId: string, parentId: string) => {
+  const onDragEnd = (
+    objectId: string,
+    nextInGroupId: string,
+    parentId: string
+  ) => {
     setDraggingObject(null);
     dispatchScene({
       type: "MOVE_OBJECT_IN_TREE",
-      payload: { objectId, parentId },
+      payload: { objectId, parentId, nextInGroupId },
     });
   };
 

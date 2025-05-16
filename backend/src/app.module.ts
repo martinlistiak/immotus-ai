@@ -4,6 +4,7 @@ import { SceneModule } from './api/scene/scene.module';
 import { ConversationModule } from './api/conversation/conversation.module';
 import { DatabaseModule } from './database.module';
 import { UserModule } from './api/user/user.module';
+import { FileModule } from './api/file/file.module';
 import { UserMiddleware } from './middlewares/user.middleware';
 import { ConversationService } from './api/conversation/conversation.service';
 import { ServeStaticModule } from '@nestjs/serve-static';
@@ -15,6 +16,7 @@ import { join } from 'path';
     ConversationModule,
     DatabaseModule,
     UserModule,
+    FileModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'client'),
       serveStaticOptions: {

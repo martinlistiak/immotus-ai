@@ -4,6 +4,7 @@
   "description": "An L-shaped kitchen with dimensions 4m x 3.5m, featuring cabinets, countertops, a kitchen table with chairs, and 30cm thick walls.",
   "createdAt": "2023-06-15T10:00:00Z",
   "updatedAt": "2023-06-15T10:00:00Z",
+  "strict": true,
   "objects": [
     {
       "id": "floor",

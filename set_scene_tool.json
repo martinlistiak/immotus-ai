@@ -1,0 +1,543 @@
+{
+  "name": "SET_SCENE",
+  "description": "This tool replaces everything that is in current scene with new objects. This can be used to perform many actions at once in an existing scene or when generating a new scene from scratch. You MUST provide a complete scene object with all required fields (id, name, description, createdAt, updatedAt, objects array). Each object in the objects array must have all required fields based on its type (id, type, attributes, parentId). Never call this tool with empty input or partial data.",
+  "strict": true,
+  "input_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "scene": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Clears the scene and sets the new scene",
+        "properties": {
+          "objects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": { "type": "string" },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "box",
+                    "light",
+                    "mesh",
+                    "sphere",
+                    "plane",
+                    "cylinder",
+                    "cone",
+                    "torus",
+                    "circle",
+                    "ring",
+                    "dodecahedron",
+                    "icosahedron",
+                    "octahedron",
+                    "tetrahedron",
+                    "torusknot",
+                    "text",
+                    "group"
+                  ]
+                },
+                "parentId": { "type": ["string", "null"] },
+                "attributes": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "name": { "type": "string" },
+                    "description": { "type": "string" },
+                    "position": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "x": { "type": "number" },
+                        "y": { "type": "number" },
+                        "z": { "type": "number" }
+                      },
+                      "required": ["x", "y", "z"]
+                    },
+                    "rotation": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "x": { "type": "number" },
+                        "y": { "type": "number" },
+                        "z": { "type": "number" }
+                      },
+                      "required": ["x", "y", "z"]
+                    },
+                    "scale": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "x": { "type": "number" },
+                        "y": { "type": "number" },
+                        "z": { "type": "number" }
+                      },
+                      "required": ["x", "y", "z"]
+                    },
+                    "intensity": { "type": "number" },
+                    "color": { "type": "string" },
+                    "distance": { "type": "number" },
+                    "decay": { "type": "number" },
+                    "geometry": {
+                      "type": "array",
+                      "items": { "type": "number" }
+                    },
+                    "material": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "color": { "type": "string" },
+                        "roughness": { "type": "number" },
+                        "metalness": { "type": "number" }
+                      },
+                      "required": ["color", "roughness", "metalness"]
+                    },
+                    "radius": { "type": "number" },
+                    "width": { "type": "number" },
+                    "height": { "type": "number" },
+                    "widthSegments": { "type": "number" },
+                    "heightSegments": { "type": "number" },
+                    "phiStart": { "type": "number" },
+                    "phiLength": { "type": "number" },
+                    "thetaStart": { "type": "number" },
+                    "thetaLength": { "type": "number" },
+                    "radiusTop": { "type": "number" },
+                    "radiusBottom": { "type": "number" },
+                    "radialSegments": { "type": "number" },
+                    "openEnded": { "type": "boolean" },
+                    "tube": { "type": "number" },
+                    "tubularSegments": { "type": "number" },
+                    "arc": { "type": "number" },
+                    "segments": { "type": "number" },
+                    "innerRadius": { "type": "number" },
+                    "outerRadius": { "type": "number" },
+                    "thetaSegments": { "type": "number" },
+                    "phiSegments": { "type": "number" },
+                    "detail": { "type": "number" },
+                    "p": { "type": "number" },
+                    "q": { "type": "number" },
+                    "text": { "type": "string" },
+                    "size": { "type": "number" },
+                    "curveSegments": { "type": "number" },
+                    "bevelEnabled": { "type": "boolean" },
+                    "bevelThickness": { "type": "number" },
+                    "bevelSize": { "type": "number" },
+                    "bevelSegments": { "type": "number" }
+                  }
+                }
+              },
+              "required": ["id", "type", "attributes", "parentId"],
+              "oneOf": [
+                {
+                  "properties": {
+                    "type": { "const": "mesh" },
+                    "attributes": {
+                      "additionalProperties": false,
+                      "required": [
+                        "name",
+                        "description",
+                        "position",
+                        "rotation",
+                        "scale",
+                        "geometry"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "properties": {
+                    "type": { "const": "light" },
+                    "attributes": {
+                      "additionalProperties": false,
+                      "required": [
+                        "name",
+                        "description",
+                        "position",
+                        "rotation",
+                        "scale",
+                        "color",
+                        "distance",
+                        "decay",
+                        "intensity"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "properties": {
+                    "type": { "const": "box" },
+                    "attributes": {
+                      "additionalProperties": false,
+                      "required": [
+                        "name",
+                        "description",
+                        "position",
+                        "rotation",
+                        "scale",
+                        "material"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "properties": {
+                    "type": { "const": "sphere" },
+                    "attributes": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "radius": { "type": "number" },
+                        "widthSegments": { "type": "number" },
+                        "heightSegments": { "type": "number" },
+                        "phiStart": { "type": "number" },
+                        "phiLength": { "type": "number" },
+                        "thetaStart": { "type": "number" },
+                        "thetaLength": { "type": "number" }
+                      },
+                      "required": [
+                        "name",
+                        "description",
+                        "position",
+                        "rotation",
+                        "scale",
+                        "material",
+                        "radius"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "properties": {
+                    "type": { "const": "plane" },
+                    "attributes": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "width": { "type": "number" },
+                        "height": { "type": "number" },
+                        "widthSegments": { "type": "number" },
+                        "heightSegments": { "type": "number" }
+                      },
+                      "required": [
+                        "name",
+                        "description",
+                        "position",
+                        "rotation",
+                        "scale",
+                        "material",
+                        "width",
+                        "height"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "properties": {
+                    "type": { "const": "cylinder" },
+                    "attributes": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "radiusTop": { "type": "number" },
+                        "radiusBottom": { "type": "number" },
+                        "height": { "type": "number" },
+                        "radialSegments": { "type": "number" },
+                        "heightSegments": { "type": "number" },
+                        "openEnded": { "type": "boolean" },
+                        "thetaStart": { "type": "number" },
+                        "thetaLength": { "type": "number" }
+                      },
+                      "required": [
+                        "name",
+                        "description",
+                        "position",
+                        "rotation",
+                        "scale",
+                        "material",
+                        "radiusTop",
+                        "radiusBottom",
+                        "height"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "properties": {
+                    "type": { "const": "cone" },
+                    "attributes": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "radius": { "type": "number" },
+                        "height": { "type": "number" },
+                        "radialSegments": { "type": "number" },
+                        "heightSegments": { "type": "number" },
+                        "openEnded": { "type": "boolean" },
+                        "thetaStart": { "type": "number" },
+                        "thetaLength": { "type": "number" }
+                      },
+                      "required": [
+                        "name",
+                        "description",
+                        "position",
+                        "rotation",
+                        "scale",
+                        "material",
+                        "radius",
+                        "height"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "properties": {
+                    "type": { "const": "torus" },
+                    "attributes": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "radius": { "type": "number" },
+                        "tube": { "type": "number" },
+                        "radialSegments": { "type": "number" },
+                        "tubularSegments": { "type": "number" },
+                        "arc": { "type": "number" }
+                      },
+                      "required": [
+                        "name",
+                        "description",
+                        "position",
+                        "rotation",
+                        "scale",
+                        "material",
+                        "radius",
+                        "tube"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "properties": {
+                    "type": { "const": "circle" },
+                    "attributes": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "radius": { "type": "number" },
+                        "segments": { "type": "number" },
+                        "thetaStart": { "type": "number" },
+                        "thetaLength": { "type": "number" }
+                      },
+                      "required": [
+                        "name",
+                        "description",
+                        "position",
+                        "rotation",
+                        "scale",
+                        "material",
+                        "radius"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "properties": {
+                    "type": { "const": "ring" },
+                    "attributes": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "innerRadius": { "type": "number" },
+                        "outerRadius": { "type": "number" },
+                        "thetaSegments": { "type": "number" },
+                        "phiSegments": { "type": "number" },
+                        "thetaStart": { "type": "number" },
+                        "thetaLength": { "type": "number" }
+                      },
+                      "required": [
+                        "name",
+                        "description",
+                        "position",
+                        "rotation",
+                        "scale",
+                        "material",
+                        "innerRadius",
+                        "outerRadius"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "properties": {
+                    "type": { "const": "dodecahedron" },
+                    "attributes": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "radius": { "type": "number" },
+                        "detail": { "type": "number" }
+                      },
+                      "required": [
+                        "name",
+                        "description",
+                        "position",
+                        "rotation",
+                        "scale",
+                        "material",
+                        "radius"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "properties": {
+                    "type": { "const": "icosahedron" },
+                    "attributes": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "radius": { "type": "number" },
+                        "detail": { "type": "number" }
+                      },
+                      "required": [
+                        "name",
+                        "description",
+                        "position",
+                        "rotation",
+                        "scale",
+                        "material",
+                        "radius"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "properties": {
+                    "type": { "const": "octahedron" },
+                    "attributes": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "radius": { "type": "number" },
+                        "detail": { "type": "number" }
+                      },
+                      "required": [
+                        "name",
+                        "description",
+                        "position",
+                        "rotation",
+                        "scale",
+                        "material",
+                        "radius"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "properties": {
+                    "type": { "const": "tetrahedron" },
+                    "attributes": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "radius": { "type": "number" },
+                        "detail": { "type": "number" }
+                      },
+                      "required": [
+                        "name",
+                        "description",
+                        "position",
+                        "rotation",
+                        "scale",
+                        "material",
+                        "radius"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "properties": {
+                    "type": { "const": "torusknot" },
+                    "attributes": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "radius": { "type": "number" },
+                        "tube": { "type": "number" },
+                        "tubularSegments": { "type": "number" },
+                        "radialSegments": { "type": "number" },
+                        "p": { "type": "number" },
+                        "q": { "type": "number" }
+                      },
+                      "required": [
+                        "name",
+                        "description",
+                        "position",
+                        "rotation",
+                        "scale",
+                        "material",
+                        "radius",
+                        "tube"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "properties": {
+                    "type": { "const": "text" },
+                    "attributes": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "text": { "type": "string" },
+                        "size": { "type": "number" },
+                        "height": { "type": "number" },
+                        "curveSegments": { "type": "number" },
+                        "bevelEnabled": { "type": "boolean" },
+                        "bevelThickness": { "type": "number" },
+                        "bevelSize": { "type": "number" },
+                        "bevelSegments": { "type": "number" }
+                      },
+                      "required": [
+                        "name",
+                        "description",
+                        "position",
+                        "rotation",
+                        "scale",
+                        "material",
+                        "text"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "properties": {
+                    "type": { "const": "group" },
+                    "attributes": {
+                      "additionalProperties": false,
+                      "required": [
+                        "name",
+                        "description",
+                        "position",
+                        "rotation",
+                        "scale"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            }
+          }
+        },
+        "required": ["objects"]
+      }
+    },
+    "required": ["scene"]
+  }
+}

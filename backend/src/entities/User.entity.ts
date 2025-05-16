@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 import { Conversation } from './Conversation.entity';
 import { Scene } from './Scene.entity';
-
+import { File } from './File.entity';
 export enum UserRole {
   THREE_D_DESIGNER = '3d designer',
   ARCHITECT = 'architect',
@@ -42,6 +42,9 @@ export class User {
 
   @OneToMany(() => Conversation, (conversation) => conversation.user)
   conversations: Conversation[];
+
+  @OneToMany(() => File, (file) => file.user)
+  files: File[];
 
   @ManyToMany(() => Scene)
   @JoinTable({

@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv';
 import { User } from './entities/User.entity';
 import { Conversation } from './entities/Conversation.entity';
 import { Scene } from './entities/Scene.entity';
-
+import { File } from './entities/File.entity';
 dotenv.config();
 
 export const databaseProviders = [
@@ -17,7 +17,7 @@ export const databaseProviders = [
         username: process.env.DB_USERNAME,
         password: process.env.DB_PASS,
         database: process.env.DB_NAME,
-        entities: [User, Conversation, Scene],
+        entities: [User, Conversation, Scene, File],
         synchronize: true,
         connectTimeoutMS: 30000,
         logging: true,

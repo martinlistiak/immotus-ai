@@ -97,10 +97,10 @@ type RenameObjectAction = {
   };
 };
 
-type DuplicateObjectAction = {
-  type: "DUPLICATE_OBJECT";
+type DuplicateObjectsAction = {
+  type: "DUPLICATE_OBJECTS";
   payload: {
-    objectId: string;
+    objectIds: string[];
   };
 };
 
@@ -297,6 +297,7 @@ type MoveObjectInTreeAction = {
   type: "MOVE_OBJECT_IN_TREE";
   payload: {
     objectId: string;
+    nextInGroupId: string;
     parentId: string;
   };
 };
@@ -313,7 +314,7 @@ export type Action =
       | SetSceneAction
       | RemoveObjectsAction
       | RenameObjectAction
-      | DuplicateObjectAction
+      | DuplicateObjectsAction
       | GroupObjectsAction
       | ChangeObjectMetalnessAction
       | ChangeObjectRoughnessAction
@@ -512,35 +513,35 @@ export const sceneReducer = (state: SceneType, action: Action) => {
           object.attributes.name = action.payload.name;
         }
       });
-    case "DUPLICATE_OBJECT":
+    case "DUPLICATE_OBJECTS":
       return produce(state, (draft) => {
-        const duplicates = duplicateObjectRecursively(
-          action.payload.objectId,
-          draft.objects
-        ).map((d) =>
-          !d.parentId
-            ? {
+        const duplicates = action.payload.objectIds
+          .map((objectId) => {
+            const object = draft.objects.find(
+              (object) => object.id === objectId
+            );
+            if (object) {
+              const duplicates = duplicateObjectRecursively(
+                object.id,
+                draft.objects
+              ).map((d) => ({
                 ...d,
                 attributes: {
                   ...d.attributes,
                   name: `${d.attributes.name} (Copy)`,
                 },
-              }
-            : d
-        );
-
-        const object = draft.objects.find(
-          (object) => object.id === action.payload.objectId
-        );
-        if (object) {
-          // splice the object at the index of the object
-          // duplicate also the children recursively
-          draft.objects.splice(
-            draft.objects.indexOf(object) + 1,
-            0,
-            ...duplicates
-          );
-        }
+              }));
+              duplicates.forEach((duplicate) => {
+                draft.objects.splice(
+                  draft.objects.indexOf(object) + 1,
+                  0,
+                  duplicate
+                );
+              });
+            }
+            return null;
+          })
+          .filter((d) => d !== null);
       });
     case "GROUP_OBJECTS":
       return produce(state, (draft) => {
@@ -734,6 +735,23 @@ export const sceneReducer = (state: SceneType, action: Action) => {
         );
         if (object) {
           object.parentId = action.payload.parentId || null;
+
+          if (action.payload.nextInGroupId !== object.id) {
+            // remove the object from the draft.objects
+            draft.objects.splice(
+              draft.objects.findIndex((o) => o.id === object.id),
+              1
+            );
+
+            // insert the object at the index of the nextInGroupId
+            draft.objects.splice(
+              draft.objects.findIndex(
+                (o) => o.id === action.payload.nextInGroupId
+              ) - 1,
+              0,
+              object as any
+            );
+          }
         }
       });
     default:

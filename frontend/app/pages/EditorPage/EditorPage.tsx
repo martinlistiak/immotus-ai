@@ -12,6 +12,10 @@ import { SceneSelection } from "./SceneSelection/SceneSelection";
 import { LeftPanel } from "./LeftPanel/LeftPanel";
 import { AuthProvider } from "app/contexts/auth.context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { LibraryContextProvider } from "app/contexts/library.context";
+import { ImportContextProvider } from "app/contexts/import.context";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 
 export const EditorPage = () => {
   const queryClient = new QueryClient();
@@ -19,21 +23,27 @@ export const EditorPage = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <SceneContextProvider>
-          <SceneHoverContextProvider>
-            <SceneDragAndDropContextProvider>
-              <SceneExportContextProvider>
-                <ConversationContextProvider>
-                  <Scene />
-                  <LeftPanel />
-                  <Toolbar />
-                  <RightPanel />
-                  <SceneSelection />
-                </ConversationContextProvider>
-              </SceneExportContextProvider>
-            </SceneDragAndDropContextProvider>
-          </SceneHoverContextProvider>
-        </SceneContextProvider>
+        <DndProvider backend={HTML5Backend}>
+          <SceneContextProvider>
+            <LibraryContextProvider>
+              <ImportContextProvider>
+                <SceneHoverContextProvider>
+                  <SceneDragAndDropContextProvider>
+                    <SceneExportContextProvider>
+                      <ConversationContextProvider>
+                        <Scene />
+                        <LeftPanel />
+                        <Toolbar />
+                        <RightPanel />
+                        <SceneSelection />
+                      </ConversationContextProvider>
+                    </SceneExportContextProvider>
+                  </SceneDragAndDropContextProvider>
+                </SceneHoverContextProvider>
+              </ImportContextProvider>
+            </LibraryContextProvider>
+          </SceneContextProvider>
+        </DndProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

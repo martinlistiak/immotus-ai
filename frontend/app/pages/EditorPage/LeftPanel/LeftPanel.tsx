@@ -5,6 +5,7 @@ import { useSceneContext, useSceneExportContext } from "../Scene/Scene.context";
 import { Tabs } from "app/components/Tabs";
 import { useEffect, useState } from "react";
 import { MaterialsInspector } from "./MaterialsInspector/MaterialsInspector";
+import { Library } from "./Library/Library";
 import { Dropdown } from "app/components/Dropdown";
 import cn from "classnames";
 enum LeftPanelTabs {
@@ -116,7 +117,7 @@ export const LeftPanel = () => {
         <div className="absolute inset-0 overflow-y-auto no-scrollbar">
           {activeTab === LeftPanelTabs.Scene && <ObjectInspector />}
           {activeTab === LeftPanelTabs.Materials && <MaterialsInspector />}
-          {activeTab === LeftPanelTabs.Library && <div>Library</div>}
+          {activeTab === LeftPanelTabs.Library && <Library />}
         </div>
       </div>
     </Card>

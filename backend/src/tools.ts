@@ -807,17 +807,18 @@ export const tools = [
     },
   },
   {
-    name: 'DUPLICATE_OBJECT',
-    description: 'Creates a copy of an object including all its children.',
+    name: 'DUPLICATE_OBJECTS',
+    description: 'Creates a copy of objects including all their children.',
     input_schema: {
       type: 'object',
       properties: {
-        objectId: {
-          type: 'string',
-          description: 'The ID of the object to duplicate',
+        objectIds: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Array of object IDs to duplicate',
         },
       },
-      required: ['objectId'],
+      required: ['objectIds'],
     },
   },
   {

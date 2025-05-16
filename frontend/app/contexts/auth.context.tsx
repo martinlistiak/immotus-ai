@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getUser, postLogin } from "app/api/auth";
 import { LoginPage } from "app/components/LoginPage";
-import { createContext } from "react";
+import { createContext, useContext } from "react";
 import type { User } from "app/types/auth";
 export const AuthContext = createContext({
   user: null as User | null,
@@ -53,8 +53,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user: userResponse.user, logout, login }}>
+    <AuthContext.Provider value={{ user: userResponse, logout, login }}>
       {children}
     </AuthContext.Provider>
   );
+};
+
+export const useAuthContext = () => {
+  return useContext(AuthContext);
 };

@@ -14,7 +14,7 @@ export const postLogin = async ({
   });
 };
 
-export const getUser = async (): Promise<{ user: User }> => {
+export const getUser = async (): Promise<User> => {
   const response = await axiosInstance.get("/user");
   return response.data;
 };

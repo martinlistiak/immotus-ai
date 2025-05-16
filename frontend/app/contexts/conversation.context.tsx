@@ -10,7 +10,7 @@ import {
 } from "react";
 import { useSceneContext } from "app/pages/EditorPage/Scene/Scene.context";
 import { axiosInstance } from "app/api/client";
-import type { SceneObjects } from "app/types/scene-ast";
+import type { SceneObjects, SceneType } from "app/types/scene-ast";
 export type Conversation = {
   id: string;
   name: string;
@@ -194,7 +194,7 @@ export const ConversationContextProvider = ({
               scene: {
                 ...scene,
                 objects: data.content.scene.objects as SceneObjects,
-              },
+              } as SceneType,
             },
           });
           setMessages((prev) => [

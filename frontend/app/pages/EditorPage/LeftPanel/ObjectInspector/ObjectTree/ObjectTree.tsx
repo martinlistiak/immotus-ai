@@ -3,82 +3,12 @@ import {
   useSceneHoverContext,
   useSceneDragAndDropContext,
 } from "../../../Scene/Scene.context";
-import cn from "classnames";
 import type { ObjectType } from "app/types/scene-ast";
-import { IoCaretDown, IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
-import { useState, useRef, useEffect } from "react";
-import { Card } from "app/components/Card";
+import { useEffect, useState, useRef } from "react";
 import { NodeIcon } from "app/components/NodeIcon";
-import { useDrag, useDrop } from "react-dnd";
-import { getEmptyImage } from "react-dnd-html5-backend";
-
-// DnD item types
-const ItemTypes = {
-  TREE_NODE: "tree-node",
-};
-
-// DnD item structure
-interface DragItem {
-  id: string;
-  type: ObjectType;
-  index: number;
-  name: string;
-}
-
-const RightClickMenu = ({ onClose }: { onClose: () => void }) => {
-  const { removeObjects, dispatchScene, selectedObjects } = useSceneContext();
-
-  const handleDuplicate = () => {
-    for (const object of selectedObjects) {
-      dispatchScene({
-        type: "DUPLICATE_OBJECT",
-        payload: { objectId: object.id },
-      });
-    }
-    onClose();
-  };
-
-  const groupObjects = () => {
-    dispatchScene({
-      type: "GROUP_OBJECTS",
-      payload: { objectIds: selectedObjects.map((o) => o.id) },
-    });
-    onClose();
-  };
-
-  return (
-    <Card className="absolute right-0 top-[26px] w-[160px] h-fit !bg-gray-900 !rounded-sm z-10 !text-xs text-gray-400 !p-2">
-      <div className="flex flex-col">
-        <div
-          onClick={() => {
-            handleDuplicate();
-          }}
-          className="cursor-pointer hover:bg-active hover:text-white rounded-md p-[10px] py-1"
-        >
-          <p>Duplicate</p>
-        </div>
-
-        <div
-          onClick={() => {
-            groupObjects();
-          }}
-          className="cursor-pointer hover:bg-active hover:text-white rounded-md p-[10px] py-1"
-        >
-          <p>Group Selection</p>
-        </div>
-        <div
-          onClick={() => {
-            removeObjects(selectedObjects.map((o) => o.id));
-            onClose();
-          }}
-          className="cursor-pointer hover:bg-active hover:text-white rounded-md p-[10px] py-1"
-        >
-          <p>Delete</p>
-        </div>
-      </div>
-    </Card>
-  );
-};
+import { GenericTree } from "app/components/GenericTree/GenericTree";
+import type { TreeNodeData } from "app/components/GenericTree/GenericTree";
+import { GenericDragLayer } from "app/components/GenericTree/DragLayer";
 
 export type TreeNodeType = {
   id: string;
@@ -88,40 +18,12 @@ export type TreeNodeType = {
   parentId?: string | null;
 };
 
-const VerticalLine = ({ isLastChild }: { isLastChild: boolean }) => {
-  return (
-    <div
-      className={cn({
-        "z-10 absolute left-[13px] top-0 w-[1px] h-full bg-gray-400": true,
-        "!h-[calc(100%-13px)]": isLastChild,
-      })}
-    />
-  );
-};
-
-const HorizontalLine = () => {
-  return (
-    <div className="absolute left-[14px] top-[50%] translate-y-[-50%] w-[8px] h-[1px] bg-gray-400" />
-  );
-};
-
-// Drop position indicator
-const DropIndicator = () => {
-  return <div className="absolute left-0 right-0 h-[2px] bg-blue-500 z-20" />;
-};
-
-const TreeNode = ({
-  node,
-  level,
+export const ObjectTree = ({
   nodes,
-  onShiftSelect,
-  index,
+  level = 0,
 }: {
-  node: TreeNodeType;
-  level: number;
   nodes: TreeNodeType[];
-  onShiftSelect: (objectId: string, nodes: TreeNodeType[]) => void;
-  index: number;
+  level: number;
 }) => {
   const {
     setSelectedObjects,
@@ -136,309 +38,210 @@ const TreeNode = ({
     useSceneHoverContext();
   const { onDragStart, onDragEnd, draggingObject } =
     useSceneDragAndDropContext();
+  const copiedObjectsRef = useRef<string[]>([]);
 
-  const [isGroupOpen, setIsGroupOpen] = useState(true);
-  const [dropPosition, setDropPosition] = useState<
-    "before" | "inside" | "after" | null
-  >(null);
-  const ref = useRef<HTMLDivElement>(null);
+  // Convert TreeNodeType to GenericTree's TreeNodeData
+  const convertToTreeNodeData = (nodes: TreeNodeType[]): TreeNodeData[] => {
+    return nodes.map((node) => ({
+      id: node.id,
+      name: node.name,
+      type: node.type,
+      parentId: node.parentId,
+      children:
+        node.children.length > 0
+          ? convertToTreeNodeData(node.children)
+          : undefined,
+      // Store original node data for reference
+      _original: node,
+    }));
+  };
 
-  const isHovered = hoveredObject?.id === node.id;
-  const isSelected = selectedObjects.some((object) => object.id === node.id);
-  const [isRightClickMenuOpen, setIsRightClickMenuOpen] = useState(false);
-
-  const isLastChild =
-    nodes.findIndex((n) => n.id === node.id) === nodes.length - 1;
-
-  // Set up drag
-  const [{ isDragging }, drag, preview] = useDrag({
-    type: ItemTypes.TREE_NODE,
-    item: (): DragItem => {
-      onDragStart(node.id);
-      return { id: node.id, type: node.type, index, name: node.name };
-    },
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
-    end: (item, monitor) => {
-      if (!monitor.didDrop()) {
-        onDragEnd(node.id, "");
-      }
-    },
-  });
-
-  // Use empty image as drag preview (we'll handle custom preview elsewhere)
   useEffect(() => {
-    preview(getEmptyImage(), { captureDraggingState: true });
-  }, [preview]);
-
-  // Set up drop
-  const [{ isOver }, drop] = useDrop({
-    accept: ItemTypes.TREE_NODE,
-    hover: (item: DragItem, monitor) => {
-      if (!ref.current) {
-        return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Copy selected objects (Ctrl+C or Cmd+C)
+      if ((e.ctrlKey || e.metaKey) && e.key === "c") {
+        copiedObjectsRef.current = selectedObjects.map((object) => object.id);
       }
 
-      // Don't allow dropping onto self
-      if (item.id === node.id) {
-        setDropPosition(null);
-        return;
+      // Paste/duplicate copied objects (Ctrl+V or Cmd+V)
+      if (
+        (e.ctrlKey || e.metaKey) &&
+        e.key === "v" &&
+        copiedObjectsRef.current.length > 0
+      ) {
+        dispatchScene({
+          type: "DUPLICATE_OBJECTS",
+          payload: { objectIds: copiedObjectsRef.current },
+        });
       }
+    };
 
-      // Get the position of the cursor
-      const hoverBoundingRect = ref.current.getBoundingClientRect();
-      const hoverMiddleY =
-        (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-      const clientOffset = monitor.getClientOffset();
-      const hoverClientY = clientOffset!.y - hoverBoundingRect.top;
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedObjects, dispatchScene]);
 
-      // Determine drop position
-      if (hoverClientY < hoverMiddleY * 0.5) {
-        setDropPosition("before");
-      } else if (hoverClientY > hoverMiddleY * 1.5) {
-        setDropPosition("after");
-      } else {
-        // Only allow dropping inside groups
-        if (node.type === "group") {
-          setDropPosition("inside");
-        } else {
-          setDropPosition("after");
-        }
-      }
-    },
-    drop: (item: DragItem, monitor) => {
-      if (!ref.current) {
-        return;
-      }
+  const treeData = convertToTreeNodeData(nodes);
 
-      // Don't allow dropping onto self
-      if (item.id === node.id) {
-        return;
-      }
-
-      // Calculate parent id based on drop position
-      let parentId = "";
-
-      if (dropPosition === "inside" && node.type === "group") {
-        // If dropping inside a group, use the group's ID as parent
-        parentId = node.id;
-      } else {
-        // For before/after positions, use the same parent as the current node
-        // This keeps the item at the same level in the hierarchy
-        parentId = node.parentId || "";
-      }
-
-      onDragEnd(item.id, parentId);
-      setDropPosition(null);
-    },
-    collect: (monitor) => ({
-      isOver: monitor.isOver(),
-    }),
-  });
-
-  // Apply refs
-  drag(drop(ref));
-
-  const onClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.stopPropagation();
-    // if (is holding shift)
-    if (e.shiftKey) {
-      onShiftSelect(node.id, nodes);
-    } else if (e.ctrlKey || e.metaKey) {
+  // Handle selection
+  const handleSelectNode = (
+    nodeId: string,
+    multiSelect: boolean,
+    rangeSelect: boolean
+  ) => {
+    if (multiSelect) {
+      // Add to selection
       setSelectedObjects([
         ...selectedObjects.map((object) => object.id),
-        node.id,
+        nodeId,
       ]);
+    } else if (rangeSelect) {
+      // Find nodes between the first selected node and this one
+      const flatNodes = flattenNodes(nodes);
+      const selectedNodeIndex = flatNodes.findIndex(
+        (node) => node.id === nodeId
+      );
+      const [maxSelectedIndex, minSelectedIndex] = flatNodes.reduce(
+        (acc, node, i) => {
+          if (selectedObjects.find((o) => o.id === node.id)) {
+            return [Math.max(acc[0], i), Math.min(acc[1], i)];
+          }
+          return acc;
+        },
+        [selectedNodeIndex, selectedNodeIndex]
+      );
+
+      const nodesInBetween = flatNodes.slice(
+        minSelectedIndex,
+        maxSelectedIndex + 1
+      );
+      setSelectedObjects([...nodesInBetween.map((node) => node.id)]);
     } else {
+      // Simple selection
       setSelectedObjects(
-        selectedObjects.find((o) => o.id === node.id) ? [] : [node.id]
+        selectedObjects.find((o) => o.id === nodeId) ? [] : [nodeId]
       );
     }
   };
-  const isHidden = hiddenObjectIds.includes(node.id);
-  return (
-    <div
-      ref={ref}
-      className={cn({
-        "flex flex-col gap-x-2 relative hover:bg-gray-800": true,
-        "bg-gray-800": isHovered,
-        "!bg-active text-white": isSelected,
-        "opacity-50": isDragging,
-      })}
-      onClick={onClick}
-      onContextMenu={(e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        if (selectedObjects.find((o) => o.id === node.id)) {
-          setIsRightClickMenuOpen(true);
-        } else {
-          setSelectedObjects([node.id]);
-          setIsRightClickMenuOpen(true);
-        }
-      }}
-      onMouseLeave={() => {
-        if (isRightClickMenuOpen) {
-          setIsRightClickMenuOpen(false);
-        }
-      }}
-    >
-      {isOver && dropPosition === "before" && <DropIndicator />}
-      {(node.type !== "group" || !isGroupOpen) && <HorizontalLine />}
-      <div
-        className={cn({
-          "text-xs py-1 pr-3 pl-8 relative cursor-default flex items-center justify-between":
-            true,
-          "outline outline-active ": isHovered,
-          "opacity-50": isHidden,
-        })}
-        onPointerEnter={(e) => {
-          e.stopPropagation();
-          onHoverObjectIn(node.id);
-        }}
-        onPointerLeave={(e) => {
-          e.stopPropagation();
-          onHoverObjectOut(node.id);
-        }}
-        onDoubleClick={(e) => {
-          e.stopPropagation();
-          setEditingObjectName(node.id);
-        }}
-      >
-        <div className="flex items-center gap-2">
-          <NodeIcon type={node.type} />
-          {editingObjectName === node.id ? (
-            <input
-              type="text"
-              autoFocus
-              className="w-full border bg-[rgba(255,255,255,0.3)] border-gray-300 rounded-sm h-[26px] outline-none -m-1 p-1"
-              defaultValue={node.name}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  setEditingObjectName(null);
-                  dispatchScene({
-                    type: "RENAME_OBJECT",
-                    payload: { objectId: node.id, name: e.currentTarget.value },
-                  });
-                }
-              }}
-              onBlur={(e) => {
-                setEditingObjectName(null);
-                dispatchScene({
-                  type: "RENAME_OBJECT",
-                  payload: { objectId: node.id, name: e.target.value },
-                });
-              }}
-            />
-          ) : (
-            <div className="border border-transparent w-full -m-1 p-1 rounded-sm h-[26px] text-ellipsis overflow-hidden whitespace-nowrap">
-              {node.name}
-            </div>
-          )}
-        </div>
-        {isHovered && !isHidden && (
-          <IoEyeOutline
-            className="w-[16px] h-[16px] hover:text-gray-300"
-            onClick={() => {
-              // const childrenIds = findChildrenRecursively(
-              //   scene?.objects || [],
-              //   node.id
-              // ).map((c) => c.id);
-              setHiddenObjectIds([...hiddenObjectIds, node.id]);
-            }}
-          />
-        )}
-        {isHidden && (
-          <IoEyeOffOutline
-            className="w-[16px] h-[16px] hover:text-gray-300"
-            onClick={() => {
-              // const childrenIds = findChildrenRecursively(
-              //   scene?.objects || [],
-              //   node.id
-              // ).map((c) => c.id);
-              setHiddenObjectIds(
-                hiddenObjectIds.filter((id) => id !== node.id)
-              );
-            }}
-          />
-        )}
-      </div>
-      {node.type === "group" && (
-        <div
-          className={cn({
-            "absolute left-[5px] top-[4px] w-[18px] h-[18px] border border-gray-400 rounded-sm flex items-center justify-center bg-[#131418] outline-2 outline-[#131418] z-10 cursor-pointer":
-              true,
-            "rotate-180": !isGroupOpen,
-          })}
-          onClick={() => {
-            setIsGroupOpen(!isGroupOpen);
-          }}
-        >
-          <IoCaretDown className="w-[12px] h-[12px]" />
-        </div>
-      )}
-      {isRightClickMenuOpen && (
-        <RightClickMenu onClose={() => setIsRightClickMenuOpen(false)} />
-      )}
-      <div
-        className={cn({
-          "relative left-[14px] w-[calc(100%-14px)]": true,
-          hidden: !isGroupOpen,
-        })}
-      >
-        {node.children.map((child, idx) => (
-          <TreeNode
-            key={child.id}
-            node={child}
-            nodes={node.children}
-            level={level + 1}
-            onShiftSelect={onShiftSelect}
-            index={idx}
-          />
-        ))}
-      </div>
-      {isOver && dropPosition === "after" && <DropIndicator />}
-      {node.type !== "group" && <VerticalLine isLastChild={isLastChild} />}
-    </div>
-  );
-};
 
-export const ObjectTree = ({
-  nodes,
-  level = 0,
-}: {
-  nodes: TreeNodeType[];
-  level: number;
-}) => {
-  const { setSelectedObjects, selectedObjects } = useSceneContext();
-  const onShiftSelect = (objectId: string, nodes: TreeNodeType[]) => {
-    const selectedObjectIndex = nodes.findIndex((node) => node.id === objectId);
-    const [maxSelectedIndex, minSelectedIndex] = nodes.reduce(
-      (acc, node, i) => {
-        if (selectedObjects.find((o) => o.id === node.id)) {
-          return [Math.max(acc[0], i), Math.min(acc[1], i)];
-        }
-        return acc;
+  // Helper to flatten the tree nodes
+  const flattenNodes = (nodes: TreeNodeType[]): TreeNodeType[] => {
+    return nodes.reduce((acc, node) => {
+      acc.push(node);
+      if (node.children && node.children.length > 0) {
+        acc.push(...flattenNodes(node.children));
+      }
+      return acc;
+    }, [] as TreeNodeType[]);
+  };
+
+  // Get context menu options
+  const getContextMenuOptions = (nodeId: string) => {
+    return [
+      {
+        label: "Duplicate",
+        onClick: () => {
+          dispatchScene({
+            type: "DUPLICATE_OBJECTS",
+            payload: { objectIds: selectedObjects.map((o) => o.id) },
+          });
+        },
       },
-      [selectedObjectIndex, selectedObjectIndex]
+      {
+        label: "Group Selection",
+        onClick: () => {
+          dispatchScene({
+            type: "GROUP_OBJECTS",
+            payload: { objectIds: selectedObjects.map((o) => o.id) },
+          });
+        },
+      },
+      {
+        label: "Delete",
+        onClick: () => {
+          removeObjects([nodeId]);
+        },
+      },
+    ];
+  };
+
+  // Toggle visibility
+  const handleToggleVisibility = (nodeId: string, isHidden: boolean) => {
+    if (isHidden) {
+      setHiddenObjectIds(hiddenObjectIds.filter((id) => id !== nodeId));
+    } else {
+      setHiddenObjectIds([...hiddenObjectIds, nodeId]);
+    }
+  };
+
+  // Handle rename
+  const handleRenameNode = (nodeId: string, newName: string) => {
+    dispatchScene({
+      type: "RENAME_OBJECT",
+      payload: { objectId: nodeId, name: newName },
+    });
+  };
+
+  // Handle drag and drop
+  const handleTreeDragStart = (nodeId: string) => {
+    onDragStart(nodeId);
+  };
+
+  const handleTreeDragEnd = (
+    nodeId: string,
+    beforeNodeId: string,
+    parentId: string
+  ) => {
+    console.log(
+      `Moving ${nodeId} before ${beforeNodeId} under parent ${parentId}`
     );
 
-    const nodesInBetween = nodes.slice(minSelectedIndex, maxSelectedIndex + 1);
-    setSelectedObjects([...nodesInBetween.map((node) => node.id)]);
+    // If beforeNodeId is empty, this item should go at the end of its parent's children
+    const targetBeforeId = beforeNodeId || "";
+
+    // Call the scene context's drag end handler
+    onDragEnd(nodeId, targetBeforeId, parentId);
+  };
+
+  // Custom icon renderer
+  const renderIcon = (node: TreeNodeData) => {
+    return <NodeIcon type={node.type as ObjectType} />;
+  };
+
+  // Helper function to remove objects
+  const removeObjects = (objectIds: string[]) => {
+    setSelectedObjects([]);
+    dispatchScene({
+      type: "REMOVE_OBJECTS",
+      payload: { objectIds },
+    });
   };
 
   return (
-    <div className="flex flex-col relative">
-      {nodes.map((node, index) => (
-        <TreeNode
-          key={node.id}
-          node={node}
-          nodes={nodes}
-          onShiftSelect={onShiftSelect}
-          level={level + 1}
-          index={index}
-        />
-      ))}
-    </div>
+    <>
+      <GenericTree
+        nodes={treeData}
+        level={level}
+        selectedNodeIds={selectedObjects.map((o) => o.id)}
+        onSelectNode={handleSelectNode}
+        hoveredNodeId={hoveredObject?.id || null}
+        onHoverNode={onHoverObjectIn}
+        onHoverExit={onHoverObjectOut}
+        hiddenNodeIds={hiddenObjectIds}
+        onToggleVisibility={handleToggleVisibility}
+        onDragStart={handleTreeDragStart}
+        onDragEnd={handleTreeDragEnd}
+        onRenameNode={handleRenameNode}
+        editingNodeId={editingObjectName}
+        setEditingNodeId={setEditingObjectName}
+        getContextMenuOptions={getContextMenuOptions}
+        renderIcon={renderIcon}
+        allowDragDrop={true}
+        allowContextMenu={true}
+        allowRenaming={true}
+      />
+      <GenericDragLayer
+        renderIcon={(type) => <NodeIcon type={type as ObjectType} />}
+      />
+    </>
   );
 };
