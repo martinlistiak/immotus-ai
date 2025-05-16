@@ -8,6 +8,8 @@ import { MaterialsInspector } from "./MaterialsInspector/MaterialsInspector";
 import { Library } from "./Library/Library";
 import { Dropdown } from "app/components/Dropdown";
 import cn from "classnames";
+import { useMutation } from "@tanstack/react-query";
+import { renameScene } from "app/api/scene";
 enum LeftPanelTabs {
   Scene = "Scene",
   Materials = "Materials",
@@ -21,6 +23,10 @@ export const LeftPanel = () => {
     isSceneSelectionOpen,
     setIsSceneSelectionOpen,
   } = useSceneContext();
+  const { mutateAsync: updateSceneName } = useMutation({
+    mutationFn: (name: string) =>
+      renameScene({ id: scene?.id!, newName: name }),
+  });
   const { exportScene } = useSceneExportContext();
   const [sceneName, setSceneName] = useState(scene?.name);
   const [activeTab, setActiveTab] = useState(LeftPanelTabs.Scene);
@@ -65,6 +71,7 @@ export const LeftPanel = () => {
               },
               skipHistory: true,
             });
+            updateSceneName(e.target.value);
           }}
         />
         <Dropdown

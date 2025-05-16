@@ -61,7 +61,7 @@ export const SceneSelection = () => {
       <div className="grid grid-cols-3 gap-4">
         {scenes.map((scene) => (
           <div
-            key={scene.name}
+            key={scene.id}
             className={cn({
               "text-white border border-gray-800 rounded-md p-3 w-[180px] h-[180px] flex flex-col items-center justify-center text-sm cursor-pointer hover:bg-gray-900 transition-all relative group":
                 true,
