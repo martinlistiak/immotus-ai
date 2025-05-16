@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { v4 as uuid } from "uuid";
 import type {
   SceneObjects,
@@ -24,7 +25,10 @@ export const importGltf = async (gltfUrl: string): Promise<SceneObjects> => {
 
         // Create a temporary scene to process the geometries
         const tempScene = new THREE.Scene();
-        tempScene.add(gltf.scene);
+        tempScene.add(gltf.scene.clone()); // Clone to prevent modifications to original
+
+        // Reference to store all meshes to check for shared geometries
+        const processedGeometries = new Map();
 
         // Process all objects in the GLTF scene
         gltf.scene.traverse((object) => {
@@ -63,39 +67,36 @@ export const importGltf = async (gltfUrl: string): Promise<SceneObjects> => {
             objectType = "torusknot";
           }
 
-          // Get the world position/rotation/scale
-          const worldPosition = new THREE.Vector3();
-          const worldQuaternion = new THREE.Quaternion();
-          const worldScale = new THREE.Vector3();
+          // Get the local-to-world transformation matrix
           mesh.updateWorldMatrix(true, false);
-          mesh.matrixWorld.decompose(
-            worldPosition,
-            worldQuaternion,
-            worldScale
-          );
+          const matrix = mesh.matrixWorld.clone();
+
+          // Extract position from matrix
+          const position = new THREE.Vector3();
+          const quaternion = new THREE.Quaternion();
+          const scale = new THREE.Vector3();
+          matrix.decompose(position, quaternion, scale);
 
           // Convert quaternion to Euler angles
-          const worldRotation = new THREE.Euler().setFromQuaternion(
-            worldQuaternion
-          );
+          const rotation = new THREE.Euler().setFromQuaternion(quaternion);
 
-          // Extract position, rotation and scale
-          const position = {
-            x: worldPosition.x,
-            y: worldPosition.y,
-            z: worldPosition.z,
+          // Create position, rotation and scale objects
+          const positionObj = {
+            x: position.x,
+            y: position.y,
+            z: position.z,
           };
 
-          const rotation = {
-            x: worldRotation.x,
-            y: worldRotation.y,
-            z: worldRotation.z,
+          const rotationObj = {
+            x: rotation.x,
+            y: rotation.y,
+            z: rotation.z,
           };
 
-          const scale = {
-            x: worldScale.x,
-            y: worldScale.y,
-            z: worldScale.z,
+          const scaleObj = {
+            x: scale.x,
+            y: scale.y,
+            z: scale.z,
           };
 
           // Extract material properties
@@ -124,9 +125,9 @@ export const importGltf = async (gltfUrl: string): Promise<SceneObjects> => {
           const baseAttributes: BaseObjectWithMaterialAttributes = {
             name: mesh.name || `Imported ${objectType}`,
             description: "",
-            position,
-            rotation,
-            scale,
+            position: positionObj,
+            rotation: rotationObj,
+            scale: scaleObj,
             material: {
               color,
               roughness,
@@ -141,41 +142,82 @@ export const importGltf = async (gltfUrl: string): Promise<SceneObjects> => {
             objectType === "mesh" &&
             mesh.geometry instanceof THREE.BufferGeometry
           ) {
-            // Clone the geometry to avoid modifying the original
-            const clonedGeometry = mesh.geometry.clone();
+            // Check if we've already processed this geometry
+            const geometryId = mesh.geometry.uuid;
+            let geometryArray: number[];
 
-            // Apply the mesh's matrix transform to the geometry
-            const transformMatrix = new THREE.Matrix4();
-            // Reset position/rotation/scale for the geometry since we'll apply them separately
-            transformMatrix.makeScale(1, 1, 1); // Identity scale
-            clonedGeometry.applyMatrix4(transformMatrix);
-
-            // Ensure normals are computed
-            clonedGeometry.computeVertexNormals();
-            clonedGeometry.normalizeNormals();
-
-            const positionAttribute = clonedGeometry.getAttribute("position");
-
-            if (positionAttribute) {
-              // Create array from position attribute
-              const geometryArray = Array.from(positionAttribute.array);
-
-              finalAttributes = {
-                ...baseAttributes,
-                geometry: geometryArray,
-              } as MeshAttributes;
-
+            if (processedGeometries.has(geometryId)) {
+              // Reuse the processed geometry
+              geometryArray = processedGeometries.get(geometryId);
               console.log(
-                `Extracted geometry for ${mesh.name || "unnamed mesh"} with ${
-                  geometryArray.length / 3
-                } vertices`
+                `Reusing processed geometry for ${mesh.name || "unnamed mesh"}`
               );
             } else {
-              console.warn(
-                `No position attribute found for mesh ${mesh.name || "unnamed"}`
-              );
-              finalAttributes = baseAttributes as ObjectAttributes;
+              // Process new geometry
+              try {
+                // Create a deep clone of the original geometry
+                const originalGeometry = mesh.geometry.clone();
+
+                // Ensure the geometry has indices for proper triangulation
+                if (!originalGeometry.index) {
+                  originalGeometry.computeVertexNormals();
+                  // Create an indexed version
+                  const indexedGeometry =
+                    BufferGeometryUtils.mergeVertices(originalGeometry);
+                  originalGeometry.index = indexedGeometry.index;
+                  originalGeometry.attributes.position =
+                    indexedGeometry.getAttribute("position");
+                  if (indexedGeometry.getAttribute("normal")) {
+                    originalGeometry.attributes.normal =
+                      indexedGeometry.getAttribute("normal");
+                  }
+                }
+
+                // Extract the position data directly - this is crucial for complete geometry
+                const positionAttribute =
+                  originalGeometry.getAttribute("position");
+
+                if (positionAttribute) {
+                  // We'll use this method to ensure ALL vertices are captured
+                  const positions = positionAttribute.array;
+                  geometryArray = Array.from(positions);
+
+                  // Store the processed geometry
+                  processedGeometries.set(geometryId, geometryArray);
+
+                  console.log(
+                    `Processed geometry for ${
+                      mesh.name || "unnamed mesh"
+                    } with ${geometryArray.length / 3} vertices`
+                  );
+                } else {
+                  throw new Error(
+                    `No position attribute found for mesh ${
+                      mesh.name || "unnamed"
+                    }`
+                  );
+                }
+              } catch (error) {
+                console.error("Error processing geometry:", error);
+                console.warn(
+                  `Falling back to simple geometry for ${
+                    mesh.name || "unnamed mesh"
+                  }`
+                );
+
+                // Create a cube as fallback
+                const fallbackGeometry = new THREE.BoxGeometry(1, 1, 1);
+                const fallbackPositions =
+                  fallbackGeometry.getAttribute("position").array;
+                geometryArray = Array.from(fallbackPositions);
+              }
             }
+
+            // Set the final attributes
+            finalAttributes = {
+              ...baseAttributes,
+              geometry: geometryArray,
+            } as MeshAttributes;
           } else {
             finalAttributes = baseAttributes as ObjectAttributes;
           }
@@ -243,7 +285,7 @@ export const importGltf = async (gltfUrl: string): Promise<SceneObjects> => {
         });
 
         // Clean up
-        tempScene.remove(gltf.scene);
+        tempScene.remove(tempScene.children[0]);
 
         console.log(`Imported ${sceneObjects.length} objects from GLTF`);
         resolve(sceneObjects);

@@ -10,13 +10,15 @@ import {
 import { SceneService } from './scene.service';
 import { SceneObjects } from '../../types/scene-ast';
 import { Scene } from '../../entities/Scene.entity';
+import { User } from '../../decorators/user.decorator';
+import { User as UserEntity } from '../../entities/User.entity';
 @Controller('scene')
 export class SceneController {
   constructor(private readonly sceneService: SceneService) {}
 
   @Get()
-  getScenes(): Promise<Scene[]> {
-    return this.sceneService.getScenes();
+  getScenes(@User() user: UserEntity): Promise<Scene[]> {
+    return this.sceneService.getScenes({ userId: user.id });
   }
 
   @Get(':id')

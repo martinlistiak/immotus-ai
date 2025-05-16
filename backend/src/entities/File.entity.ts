@@ -37,8 +37,8 @@ export class File {
   @Column({ type: 'int', nullable: true })
   userId: number | null;
 
-  @Column({ type: 'varchar', length: 255 })
-  description: string;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  description: string | null;
 
   @CreateDateColumn()
   createdAt: Date;

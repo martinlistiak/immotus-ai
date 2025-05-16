@@ -12,8 +12,12 @@ export class SceneService {
     private sceneRepository: Repository<Scene>,
   ) {}
 
-  getScenes(): Promise<Scene[]> {
-    return this.sceneRepository.find({ order: { updatedAt: 'DESC' } });
+  getScenes({ userId }: { userId: number }): Promise<Scene[]> {
+    return this.sceneRepository.find({
+      // many to many relation where user is the owner
+      where: { users: { id: userId } },
+      order: { updatedAt: 'DESC' },
+    });
   }
 
   getSceneById({ id }: { id: number }) {
@@ -23,9 +27,11 @@ export class SceneService {
   async createScene({
     name,
     objects,
+    userId,
   }: {
     name: string;
     objects: SceneObjects;
+    userId: number;
   }): Promise<Scene> {
     const newScene = this.sceneRepository.create({ name, objects });
     await this.sceneRepository.save(newScene);

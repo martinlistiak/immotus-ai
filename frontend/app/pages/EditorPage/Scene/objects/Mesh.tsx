@@ -2,8 +2,6 @@ import {
   BufferAttribute,
   BufferGeometry,
   DoubleSide,
-  FrontSide,
-  BackSide,
   Mesh as ThreeMesh,
 } from "three";
 
@@ -62,6 +60,18 @@ export function MeshComponent(props: {
       // Force update of matrices
       meshRef.current.updateMatrix();
       meshRef.current.updateMatrixWorld();
+
+      // Update material properties if needed
+      if (meshRef.current.material) {
+        const material = Array.isArray(meshRef.current.material)
+          ? meshRef.current.material[0]
+          : meshRef.current.material;
+
+        // Force material update
+        material.needsUpdate = true;
+        material.depthWrite = true;
+        material.transparent = false;
+      }
     }
   }, [geometry]);
 
@@ -74,53 +84,55 @@ export function MeshComponent(props: {
 
   const { position, rotation, scale } = props.object.attributes;
 
+  // Use a single mesh with DoubleSide to ensure all faces are rendered
   return (
-    <>
-      {/* Render with front sides */}
-      <mesh
-        ref={meshRef}
-        onClick={(event) => {
-          event.stopPropagation();
-          setSelectedObjects([props.object.id]);
-        }}
-        onPointerOver={(event) => onHoverObjectIn(props.object.id)}
-        onPointerOut={(event) => onHoverObjectOut(props.object.id)}
-        position={[position.x, position.y, position.z]}
-        rotation={[rotation.x, rotation.y, rotation.z]}
-        scale={[scale.x, scale.y, scale.z]}
-        castShadow
-        receiveShadow
-        geometry={geometry}
-        userData={{
-          id: props.object.id,
-        }}
-      >
-        {props.object.attributes.material && (
-          <meshStandardMaterial
-            color={props.object.attributes.material.color}
-            roughness={props.object.attributes.material.roughness}
-            metalness={props.object.attributes.material.metalness}
-            side={DoubleSide}
-            flatShading={false}
-            // These settings help with z-fighting and rendering artifacts
-            polygonOffset={true}
-            polygonOffsetFactor={1}
-            polygonOffsetUnits={1}
-          />
-        )}
-        {!props.object.attributes.material?.color && (
-          <meshStandardMaterial
-            color={"orange"}
-            roughness={0.7}
-            metalness={0.2}
-            side={DoubleSide}
-            // These settings help with z-fighting and rendering artifacts
-            polygonOffset={true}
-            polygonOffsetFactor={1}
-            polygonOffsetUnits={1}
-          />
-        )}
-      </mesh>
-    </>
+    <mesh
+      ref={meshRef}
+      onClick={(event) => {
+        event.stopPropagation();
+        setSelectedObjects([props.object.id]);
+      }}
+      onPointerOver={(event) => onHoverObjectIn(props.object.id)}
+      onPointerOut={(event) => onHoverObjectOut(props.object.id)}
+      position={[position.x, position.y, position.z]}
+      rotation={[rotation.x, rotation.y, rotation.z]}
+      scale={[scale.x, scale.y, scale.z]}
+      castShadow
+      receiveShadow
+      geometry={geometry}
+      userData={{
+        id: props.object.id,
+      }}
+    >
+      {props.object.attributes.material && (
+        <meshStandardMaterial
+          color={props.object.attributes.material.color}
+          roughness={props.object.attributes.material.roughness}
+          metalness={props.object.attributes.material.metalness}
+          side={DoubleSide}
+          flatShading={false}
+          polygonOffset={true}
+          polygonOffsetFactor={1}
+          polygonOffsetUnits={1}
+          transparent={false}
+          depthWrite={true}
+          depthTest={true}
+        />
+      )}
+      {!props.object.attributes.material?.color && (
+        <meshStandardMaterial
+          color={"orange"}
+          roughness={0.7}
+          metalness={0.2}
+          side={DoubleSide}
+          polygonOffset={true}
+          polygonOffsetFactor={1}
+          polygonOffsetUnits={1}
+          transparent={false}
+          depthWrite={true}
+          depthTest={true}
+        />
+      )}
+    </mesh>
   );
 }

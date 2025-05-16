@@ -12,7 +12,7 @@ interface FolderStructureItem {
   size?: number;
   contents?: FolderStructureItem[];
   id?: number;
-  description?: string;
+  description?: string | null;
   extension?: string;
   thumbnailUrl?: string | null;
 }
