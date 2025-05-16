@@ -74,6 +74,9 @@ export const ObjectTree = ({
           payload: { objectIds: copiedObjectsRef.current },
         });
       }
+      if (e.ctrlKey || (e.metaKey && e.key === "a")) {
+        setSelectedObjects(nodes.map((node) => node.id));
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);

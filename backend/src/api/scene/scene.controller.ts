@@ -27,10 +27,14 @@ export class SceneController {
   }
 
   @Post()
-  createScene(@Body() body: { name: string; objects: SceneObjects }) {
+  createScene(
+    @Body() body: { name: string; objects: SceneObjects },
+    @User() user: UserEntity,
+  ) {
     return this.sceneService.createScene({
       name: body.name,
       objects: body.objects,
+      userId: user.id,
     });
   }
 
@@ -38,20 +42,30 @@ export class SceneController {
   updateScene(
     @Param('id') id: number,
     @Body() body: { objects: SceneObjects },
+    @User() user: UserEntity,
   ) {
     return this.sceneService.updateSceneObjects({
       id: Number(id),
       objects: body.objects,
+      userId: user.id,
     });
   }
 
   @Patch(':id/rename')
-  renameScene(@Param('id') id: number, @Body() body: { name: string }) {
-    return this.sceneService.renameScene({ id, newName: body.name });
+  renameScene(
+    @Param('id') id: number,
+    @Body() body: { name: string },
+    @User() user: UserEntity,
+  ) {
+    return this.sceneService.renameScene({
+      id,
+      newName: body.name,
+      userId: user.id,
+    });
   }
 
   @Delete(':id')
-  deleteScene(@Param('id') id: number) {
-    return this.sceneService.deleteScene({ id });
+  deleteScene(@Param('id') id: number, @User() user: UserEntity) {
+    return this.sceneService.deleteScene({ id, userId: user.id });
   }
 }

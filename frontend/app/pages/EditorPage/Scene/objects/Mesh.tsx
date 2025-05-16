@@ -38,42 +38,17 @@ export function MeshComponent(props: {
     // Make sure we're setting position attribute with the correct itemSize (3 for xyz)
     geometry.setAttribute("position", new BufferAttribute(positions, 3));
 
+    console.log(geometry);
+
     // Compute vertex normals
     geometry.computeVertexNormals();
 
     // Compute bounding box for proper scaling/positioning
-    geometry.computeBoundingBox();
-    geometry.computeBoundingSphere();
+    // geometry.computeBoundingBox();
+    // geometry.computeBoundingSphere();
 
     return geometry;
   }, [props.object.attributes.geometry, props.object.id]);
-
-  // Fixes for geometry after it's added to the scene
-  useEffect(() => {
-    if (meshRef.current && geometry) {
-      // Ensure geometry is properly updated
-      geometry.attributes.position.needsUpdate = true;
-      if (geometry.attributes.normal) {
-        geometry.attributes.normal.needsUpdate = true;
-      }
-
-      // Force update of matrices
-      meshRef.current.updateMatrix();
-      meshRef.current.updateMatrixWorld();
-
-      // Update material properties if needed
-      if (meshRef.current.material) {
-        const material = Array.isArray(meshRef.current.material)
-          ? meshRef.current.material[0]
-          : meshRef.current.material;
-
-        // Force material update
-        material.needsUpdate = true;
-        material.depthWrite = true;
-        material.transparent = false;
-      }
-    }
-  }, [geometry]);
 
   // Update the mesh every frame to ensure it renders correctly
   useFrame(() => {

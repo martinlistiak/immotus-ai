@@ -154,70 +154,101 @@ export const importGltf = async (gltfUrl: string): Promise<SceneObjects> => {
               );
             } else {
               // Process new geometry
-              try {
-                // Create a deep clone of the original geometry
-                const originalGeometry = mesh.geometry.clone();
+              // Ensure the geometry has a well-defined triangulation
+              const mergedGeometry = new THREE.BufferGeometry();
 
-                // Ensure the geometry has indices for proper triangulation
-                if (!originalGeometry.index) {
-                  originalGeometry.computeVertexNormals();
-                  // Create an indexed version
-                  const indexedGeometry =
-                    BufferGeometryUtils.mergeVertices(originalGeometry);
-                  originalGeometry.index = indexedGeometry.index;
-                  originalGeometry.attributes.position =
-                    indexedGeometry.getAttribute("position");
-                  if (indexedGeometry.getAttribute("normal")) {
-                    originalGeometry.attributes.normal =
-                      indexedGeometry.getAttribute("normal");
+              // Clone the original geometry to avoid modifying it
+              const originalGeometry = mesh.geometry.clone();
+
+              // Make sure the geometry is properly indexed (important for correct triangulation)
+              if (!originalGeometry.index) {
+                originalGeometry.computeVertexNormals();
+                // If not indexed, create an indexed version
+                const indexedBufferGeom =
+                  BufferGeometryUtils.mergeVertices(originalGeometry);
+                originalGeometry.index = indexedBufferGeom.index;
+                originalGeometry.attributes = indexedBufferGeom.attributes;
+              }
+
+              // Apply world matrix to put geometry in world space
+              const cloneForPositions = originalGeometry.clone();
+
+              // Get position attribute
+              const positionAttribute =
+                cloneForPositions.getAttribute("position");
+
+              if (positionAttribute) {
+                // Create new position buffer with corrected order
+                const positions = new Float32Array(
+                  positionAttribute.array.length
+                );
+                const indexAttribute = cloneForPositions.index;
+
+                if (indexAttribute) {
+                  // Get indexed positions for proper triangulation
+                  const indices = indexAttribute.array;
+
+                  // Set vertex positions in the correct order using the index buffer
+                  for (let i = 0; i < indices.length; i++) {
+                    const index = indices[i];
+                    const vertexIndex = i * 3;
+                    const sourceIndex = index * 3;
+
+                    positions[vertexIndex] =
+                      positionAttribute.array[sourceIndex];
+                    positions[vertexIndex + 1] =
+                      positionAttribute.array[sourceIndex + 1];
+                    positions[vertexIndex + 2] =
+                      positionAttribute.array[sourceIndex + 2];
                   }
-                }
 
-                // Extract the position data directly - this is crucial for complete geometry
-                const positionAttribute =
-                  originalGeometry.getAttribute("position");
-
-                if (positionAttribute) {
-                  // We'll use this method to ensure ALL vertices are captured
-                  const positions = positionAttribute.array;
-                  geometryArray = Array.from(positions);
-
-                  // Store the processed geometry
-                  processedGeometries.set(geometryId, geometryArray);
-
-                  console.log(
-                    `Processed geometry for ${
-                      mesh.name || "unnamed mesh"
-                    } with ${geometryArray.length / 3} vertices`
+                  // Create new non-indexed buffer geometry
+                  mergedGeometry.setAttribute(
+                    "position",
+                    new THREE.BufferAttribute(positions, 3)
                   );
                 } else {
-                  throw new Error(
-                    `No position attribute found for mesh ${
-                      mesh.name || "unnamed"
-                    }`
+                  // If no index, just copy the positions
+                  mergedGeometry.setAttribute(
+                    "position",
+                    positionAttribute.clone()
                   );
                 }
-              } catch (error) {
-                console.error("Error processing geometry:", error);
+
+                // Compute normals
+                mergedGeometry.computeVertexNormals();
+
+                // Get the final position attribute
+                const finalPositions = mergedGeometry.getAttribute("position");
+                geometryArray = Array.from(finalPositions.array);
+
+                // Store for reuse
+                processedGeometries.set(geometryId, geometryArray);
+
+                console.log(
+                  `Processed geometry for ${mesh.name || "unnamed mesh"} with ${
+                    geometryArray.length / 3
+                  } vertices`
+                );
+              } else {
                 console.warn(
-                  `Falling back to simple geometry for ${
-                    mesh.name || "unnamed mesh"
+                  `No position attribute found for mesh ${
+                    mesh.name || "unnamed"
                   }`
                 );
-
-                // Create a cube as fallback
-                const fallbackGeometry = new THREE.BoxGeometry(1, 1, 1);
-                const fallbackPositions =
-                  fallbackGeometry.getAttribute("position").array;
-                geometryArray = Array.from(fallbackPositions);
+                geometryArray = [];
               }
             }
 
             // Set the final attributes
-            finalAttributes = {
-              ...baseAttributes,
-              geometry: geometryArray,
-            } as MeshAttributes;
+            if (geometryArray.length > 0) {
+              finalAttributes = {
+                ...baseAttributes,
+                geometry: geometryArray,
+              } as MeshAttributes;
+            } else {
+              finalAttributes = baseAttributes as ObjectAttributes;
+            }
           } else {
             finalAttributes = baseAttributes as ObjectAttributes;
           }

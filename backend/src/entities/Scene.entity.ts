@@ -5,6 +5,7 @@ import {
   UpdateDateColumn,
   CreateDateColumn,
   ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { SceneObjects } from '../types/scene-ast';
 import { User } from './User.entity';
@@ -24,6 +25,11 @@ export class Scene {
   objects: SceneObjects;
 
   @ManyToMany(() => User, (user) => user.scenes)
+  @JoinTable({
+    name: 'user_scenes',
+    joinColumn: { name: 'sceneId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'userId', referencedColumnName: 'id' },
+  })
   users: User[];
 
   @CreateDateColumn()

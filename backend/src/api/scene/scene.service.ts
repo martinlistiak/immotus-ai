@@ -13,11 +13,12 @@ export class SceneService {
   ) {}
 
   getScenes({ userId }: { userId: number }): Promise<Scene[]> {
-    return this.sceneRepository.find({
-      // many to many relation where user is the owner
-      where: { users: { id: userId } },
-      order: { updatedAt: 'DESC' },
-    });
+    return this.sceneRepository
+      .createQueryBuilder('scene')
+      .innerJoin('scene.users', 'user')
+      .where('user.id = :userId', { userId })
+      .orderBy('scene.updatedAt', 'DESC')
+      .getMany();
   }
 
   getSceneById({ id }: { id: number }) {
@@ -33,7 +34,11 @@ export class SceneService {
     objects: SceneObjects;
     userId: number;
   }): Promise<Scene> {
-    const newScene = this.sceneRepository.create({ name, objects });
+    const newScene = this.sceneRepository.create({
+      name,
+      objects,
+      users: [{ id: userId }],
+    });
     await this.sceneRepository.save(newScene);
     return newScene;
   }
@@ -41,30 +46,54 @@ export class SceneService {
   async updateSceneObjects({
     id,
     objects,
+    userId,
   }: {
     id: number;
     objects: SceneObjects;
+    userId: number;
   }) {
     await this.sceneRepository.update(id, {
       objects,
     });
 
-    const updatedScene = await this.sceneRepository.findOne({
-      where: { id },
-    });
+    const updatedScene = await this.sceneRepository
+      .createQueryBuilder('scene')
+      .innerJoin('scene.users', 'user')
+      .where('scene.id = :id', { id })
+      .andWhere('user.id = :userId', { userId })
+      .getOne();
 
     return updatedScene;
   }
 
-  async renameScene({ id, newName }: { id: number; newName: string }) {
+  async renameScene({
+    id,
+    newName,
+    userId,
+  }: {
+    id: number;
+    newName: string;
+    userId: number;
+  }) {
     await this.sceneRepository.update(id, { name: newName });
-    const updatedScene = await this.sceneRepository.findOne({
-      where: { id },
-    });
+
+    const updatedScene = await this.sceneRepository
+      .createQueryBuilder('scene')
+      .innerJoin('scene.users', 'user')
+      .where('scene.id = :id', { id })
+      .andWhere('user.id = :userId', { userId })
+      .getOne();
+
     return updatedScene;
   }
 
-  deleteScene({ id }: { id: number }) {
-    return this.sceneRepository.delete({ id });
+  deleteScene({ id, userId }: { id: number; userId: number }) {
+    return this.sceneRepository
+      .createQueryBuilder('scene')
+      .innerJoin('scene.users', 'user')
+      .where('scene.id = :id', { id })
+      .andWhere('user.id = :userId', { userId })
+      .delete()
+      .execute();
   }
 }
