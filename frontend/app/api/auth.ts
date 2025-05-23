@@ -14,6 +14,10 @@ export const postLogin = async ({
   });
 };
 
+export const postLogout = async (): Promise<void> => {
+  return axiosInstance.post("/user/logout");
+};
+
 export const getUser = async (): Promise<User> => {
   const response = await axiosInstance.get("/user");
   return response.data;

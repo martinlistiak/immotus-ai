@@ -4,6 +4,7 @@ import {
   postScene,
   updateSceneObjects,
 } from "app/api/scene";
+import { Spinner } from "app/components/Spinner";
 import { useLocalStorageState } from "app/hooks/useLocalStorageState";
 import {
   initialSceneObjects,
@@ -293,7 +294,7 @@ export const SceneContextProvider = ({
     >
       {isLoading && (
         <div className="flex items-center justify-center h-[100vh] w-[100vw] z-100 fixed top-0 left-0 bg-[#2D2E32]">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
+          <Spinner size={"lg"} color={"primary"} />
         </div>
       )}
       {children}

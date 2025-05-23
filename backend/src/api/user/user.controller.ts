@@ -24,6 +24,20 @@ export class UserController {
     private userRepository: Repository<UserEntity>,
   ) {}
 
+  @Post('logout')
+  logout(@Res() res: Response) {
+    // @ts-ignore
+    res.cookie('jwt', '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 0,
+    });
+
+    // @ts-ignore
+    res.status(200).json({ message: 'Successfully logged out' });
+    return { message: 'Successfully logged out' };
+  }
+
   @Post('login')
   async login(
     @Body()
@@ -37,13 +51,10 @@ export class UserController {
       const user = await this.userRepository.findOne({
         where: { email: body.email },
       });
-      console.log(user);
       if (!user) {
         return { error: 'User not found' };
       }
       const valid = await bcrypt.compare(body.password, user.password);
-
-      console.log(valid);
 
       if (!valid) {
         // @ts-ignore

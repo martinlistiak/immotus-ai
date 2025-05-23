@@ -74,45 +74,157 @@ export const NodeIcon = ({
 }) => {
   switch (type) {
     case "box":
-      return <IoCubeOutline className={cn("w-[18px] h-[18px]", className)} />;
+      return (
+        <IoCubeOutline
+          className={cn(
+            "w-[18px] h-[18px] min-w-[18px] min-h-[18px]",
+            className
+          )}
+        />
+      );
     case "sphere":
-      return <ImSphere className={cn("w-[18px] h-[18px]", className)} />;
+      return (
+        <ImSphere
+          className={cn(
+            "w-[18px] h-[18px] min-w-[18px] min-h-[18px]",
+            className
+          )}
+        />
+      );
     case "mesh":
-      return <RiShapesLine className={cn("w-[18px] h-[18px]", className)} />;
+      return (
+        <RiShapesLine
+          className={cn(
+            "w-[18px] h-[18px] min-w-[18px] min-h-[18px]",
+            className
+          )}
+        />
+      );
     case "cylinder":
-      return <LuCylinder className={cn("w-[18px] h-[18px]", className)} />;
+      return (
+        <LuCylinder
+          className={cn(
+            "w-[18px] h-[18px] min-w-[18px] min-h-[18px]",
+            className
+          )}
+        />
+      );
     case "cone":
-      return <LuCone className={cn("w-[18px] h-[18px]", className)} />;
+      return (
+        <LuCone
+          className={cn(
+            "w-[18px] h-[18px] min-w-[18px] min-h-[18px]",
+            className
+          )}
+        />
+      );
     case "torus":
-      return <LuTorus className={cn("w-[18px] h-[18px]", className)} />;
+      return (
+        <LuTorus
+          className={cn(
+            "w-[18px] h-[18px] min-w-[18px] min-h-[18px]",
+            className
+          )}
+        />
+      );
     case "circle":
-      return <BsCircle className={cn("w-[18px] h-[18px]", className)} />;
+      return (
+        <BsCircle
+          className={cn(
+            "w-[18px] h-[18px] min-w-[18px] min-h-[18px]",
+            className
+          )}
+        />
+      );
     case "ring":
-      return <GiRing className={cn("w-[18px] h-[18px]", className)} />;
+      return (
+        <GiRing
+          className={cn(
+            "w-[18px] h-[18px] min-w-[18px] min-h-[18px]",
+            className
+          )}
+        />
+      );
     case "dodecahedron":
-      return <GiCube className={cn("w-[18px] h-[18px]", className)} />;
+      return (
+        <GiCube
+          className={cn(
+            "w-[18px] h-[18px] min-w-[18px] min-h-[18px]",
+            className
+          )}
+        />
+      );
     case "icosahedron":
-      return <FaDiceD20 className={cn("w-[18px] h-[18px]", className)} />;
+      return (
+        <FaDiceD20
+          className={cn(
+            "w-[18px] h-[18px] min-w-[18px] min-h-[18px]",
+            className
+          )}
+        />
+      );
     case "octahedron":
-      return <TbOctahedron className={cn("w-[18px] h-[18px]", className)} />;
+      return (
+        <TbOctahedron
+          className={cn(
+            "w-[18px] h-[18px] min-w-[18px] min-h-[18px]",
+            className
+          )}
+        />
+      );
     case "tetrahedron":
-      return <LuPyramid className={cn("w-[18px] h-[18px]", className)} />;
+      return (
+        <LuPyramid
+          className={cn(
+            "w-[18px] h-[18px] min-w-[18px] min-h-[18px]",
+            className
+          )}
+        />
+      );
     case "torusknot":
-      return <BsHexagon className={cn("w-[18px] h-[18px]", className)} />;
+      return (
+        <BsHexagon
+          className={cn(
+            "w-[18px] h-[18px] min-w-[18px] min-h-[18px]",
+            className
+          )}
+        />
+      );
     case "text":
-      return <IoTextOutline className={cn("w-[18px] h-[18px]", className)} />;
+      return (
+        <IoTextOutline
+          className={cn(
+            "w-[18px] h-[18px] min-w-[18px] min-h-[18px]",
+            className
+          )}
+        />
+      );
     case "light":
       return <IoSunnyOutline className={cn("w-[18px] h-[20px]", className)} />;
     case "plane":
-      return <IoSquareOutline className={cn("w-[18px] h-[18px]", className)} />;
+      return (
+        <IoSquareOutline
+          className={cn(
+            "w-[18px] h-[18px] min-w-[18px] min-h-[18px]",
+            className
+          )}
+        />
+      );
     case "group":
-      return <LuGroup className={cn("w-[18px] h-[18px]", className)} />;
+      return (
+        <LuGroup
+          className={cn(
+            "w-[18px] h-[18px] min-w-[18px] min-h-[18px]",
+            className
+          )}
+        />
+      );
     // case "camera":
-    //   return <LuCamera className={cn("w-[18px] h-[18px]", className)} />;
+    //   return <LuCamera className={cn("w-[18px] h-[18px] min-w-[18px] min-h-[18px]", className)} />;
     // case "image":
-    //   return <LuImage className={cn("w-[18px] h-[18px]", className)} />;
+    //   return <LuImage className={cn("w-[18px] h-[18px] min-w-[18px] min-h-[18px]", className)} />;
     // case "video":
-    //   return <LuVideo className={cn("w-[18px] h-[18px]", className)} />;
+    //   return <LuVideo className={cn("w-[18px] h-[18px] min-w-[18px] min-h-[18px]", className)} />;
 
     default:
       return null;

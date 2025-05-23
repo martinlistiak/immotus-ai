@@ -259,7 +259,7 @@ export function Scene({ ...props }) {
           alpha: false,
           preserveDrawingBuffer: true,
         }}
-        camera={{ position: [0, 4, 10], fov: 25, near: 0.3, far: 1000 }}
+        camera={{ position: [0, 4, 10], fov: 25, near: 6, far: 1000 }}
         shadows
       >
         <SceneCapture />
@@ -272,17 +272,21 @@ export function Scene({ ...props }) {
           maxDistance={200}
           enableDamping={true}
           dampingFactor={0.05}
-          zoomSpeed={0.2}
+          zoomSpeed={0.4}
         />
 
         {/* Background color - white for technical drawing mode in 2D, dark gray for 3D */}
         <color
           attach="background"
-          args={[activeCamera === CameraType.TWO_D ? "#ffffff" : "#2D2E32"]}
+          args={[
+            activeCamera === CameraType.TWO_D
+              ? "#ffffff"
+              : scene?.backgroundColor || "#2D2E32",
+          ]}
         />
 
         {/* Only show grid in 3D mode */}
-        {activeCamera === CameraType.THREE_D && (
+        {activeCamera === CameraType.THREE_D && scene?.showGrid && (
           <Grid
             position={[0, 0, 0]}
             args={[1000, 1000]}
@@ -318,7 +322,10 @@ export function Scene({ ...props }) {
 
         {/* Only show ambient light in 3D mode */}
         {activeCamera === CameraType.THREE_D && (
-          <ambientLight intensity={0.25} />
+          <ambientLight
+            intensity={scene?.ambientLightIntensity || 0.25}
+            color={scene?.ambientLightColor || "#ffffff"}
+          />
         )}
 
         <group {...props} dispose={null}>
@@ -332,11 +339,6 @@ export function Scene({ ...props }) {
                 );
                 return <SceneObject key={object.id} object={object} />;
               })}
-
-            {/* Only show directional light in 3D mode */}
-            {activeCamera === CameraType.THREE_D && (
-              <directionalLight position={[200, 200, 300]} intensity={0.2} />
-            )}
             <BoxHelper />
           </scene>
         </group>

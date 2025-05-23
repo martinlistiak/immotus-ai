@@ -55,7 +55,7 @@ export const LoginPage = ({
         >
           {isLoadingLogin ? (
             <div className="flex items-center justify-center">
-              <Spinner size="sm" />
+              <Spinner size="sm" color="default" />
             </div>
           ) : (
             "Continue"

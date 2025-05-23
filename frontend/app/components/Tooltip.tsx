@@ -15,7 +15,7 @@ export const Tooltip = ({
   capitalize = true,
 }: {
   children: React.ReactNode;
-  text: string;
+  text: React.ReactNode;
   id?: string;
   initialPosition?: Position;
   offset?: number;
@@ -141,10 +141,12 @@ export const Tooltip = ({
 
     window.addEventListener("resize", handleResize);
     window.addEventListener("scroll", handleScroll, true);
+    window.addEventListener("click", handleMouseLeave, true);
 
     return () => {
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("scroll", handleScroll, true);
+      window.removeEventListener("click", handleMouseLeave, true);
     };
   }, [isVisible]);
 

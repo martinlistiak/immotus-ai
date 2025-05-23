@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getUser, postLogin } from "app/api/auth";
+import { getUser, postLogin, postLogout } from "app/api/auth";
 import { LoginPage } from "app/components/LoginPage";
 import { createContext, useContext } from "react";
 import type { User } from "app/types/auth";
+import { Spinner } from "app/components/Spinner";
 export const AuthContext = createContext({
   user: null as User | null,
   login: (user: any) => {},
@@ -16,6 +17,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const {
     data: userResponse,
     isPending: isLoadingUser,
+    isError: isErrorUser,
     refetch,
   } = useQuery({
     queryKey: ["user"],
@@ -35,20 +37,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     },
   });
 
-  const logout = () => {
-    // setUser(null);
-    // todo
-  };
+  const { mutateAsync: logout } = useMutation({
+    mutationFn: postLogout,
+    onSuccess: () => {
+      queryClient.setQueryData(["user"], null);
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+      refetch();
+    },
+  });
 
   if (isLoadingUser) {
     return (
       <div className="flex h-screen w-screen items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-t-2 border-gray-900 dark:border-white"></div>
+        <Spinner size={"lg"} color={"primary"} />
       </div>
     );
   }
 
-  if (!userResponse) {
+  if (isErrorUser || !userResponse) {
     return <LoginPage isLoadingLogin={isLoadingLogin} login={login} />;
   }
 

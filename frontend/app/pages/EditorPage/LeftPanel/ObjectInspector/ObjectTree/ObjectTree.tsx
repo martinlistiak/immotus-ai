@@ -58,6 +58,13 @@ export const ObjectTree = ({
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
+        return;
+      }
+
       // Copy selected objects (Ctrl+C or Cmd+C)
       if ((e.ctrlKey || e.metaKey) && e.key === "c") {
         copiedObjectsRef.current = selectedObjects.map((object) => object.id);

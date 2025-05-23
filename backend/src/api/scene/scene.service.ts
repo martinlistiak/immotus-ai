@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
 // import { SceneRepository } from './scene.repository';
 import { SceneObjects } from '../../types/scene-ast';
 import { Scene } from '../../entities/Scene.entity';
@@ -87,13 +87,15 @@ export class SceneService {
     return updatedScene;
   }
 
-  deleteScene({ id, userId }: { id: number; userId: number }) {
-    return this.sceneRepository
-      .createQueryBuilder('scene')
-      .innerJoin('scene.users', 'user')
-      .where('scene.id = :id', { id })
-      .andWhere('user.id = :userId', { userId })
-      .delete()
-      .execute();
+  async deleteScene({ id, userId }: { id: number; userId: number }) {
+    const userScene = await this.sceneRepository.findOne({
+      where: { id, users: { id: userId } },
+    });
+
+    if (!userScene) {
+      throw new ForbiddenException('Scene not found or you are not the owner');
+    }
+
+    return this.sceneRepository.delete({ id });
   }
 }

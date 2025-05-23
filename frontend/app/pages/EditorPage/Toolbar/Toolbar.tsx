@@ -2,7 +2,7 @@ import { RxDimensions } from "react-icons/rx";
 import { BsBadge3dFill } from "react-icons/bs";
 import { Card } from "app/components/Card";
 import { IoMoveOutline, IoAddOutline } from "react-icons/io5";
-import { LuUndo2, LuRedo2 } from "react-icons/lu";
+import { LuUndo2, LuRedo2, LuLogOut } from "react-icons/lu";
 import type { ReactNode } from "react";
 import cn from "classnames";
 import { BsCursor } from "react-icons/bs";
@@ -11,6 +11,9 @@ import { useSceneContext } from "../Scene/Scene.context";
 import { Tooltip } from "app/components/Tooltip";
 import { NodeIcon } from "app/components/NodeIcon";
 import { Dropdown } from "app/components/Dropdown";
+import { Avatar } from "app/components/Avatar";
+import { useAuthContext } from "app/contexts/auth.context";
+
 const Group = ({ children }: { children: ReactNode }) => {
   return (
     <div className="flex items-center h-full w-fit not-last:border-r-2 not-last:mr-2 not-last:pr-2 border-gray-600">
@@ -68,6 +71,7 @@ const Button = ({
 
 export const Toolbar = () => {
   const { undo, redo, history, historyIndex } = useSceneContext();
+  const { user, logout } = useAuthContext();
   return (
     <Card className="fixed top-4 left-[50%] translate-x-[-50%] flex h-12">
       <Group>
@@ -173,6 +177,37 @@ export const Toolbar = () => {
         >
           <RxDimensions className="w-5 h-5" />
         </Button>
+      </Group>
+      <Group>
+        <Dropdown
+          items={[
+            <div
+              className="text-white px-3 py-[2px] cursor-pointer hover:bg-[rgba(255,255,255,0.05)] text-sm flex items-center"
+              onClick={() => logout()}
+            >
+              <LuLogOut className="w-3 h-3 mr-2" />
+              Logout
+            </div>,
+          ]}
+        >
+          <Tooltip
+            capitalize={false}
+            text={
+              <div className="flex flex-col items-center">
+                <div>
+                  {user?.firstName} {user?.lastName}
+                </div>
+                <div className="text-xs text-gray-400">{user?.email}</div>
+              </div>
+            }
+            initialPosition="bottom"
+          >
+            <Avatar
+              className="ml-2 my-[4px] cursor-pointer"
+              initial={user?.firstName?.charAt(0)}
+            />
+          </Tooltip>
+        </Dropdown>
       </Group>
     </Card>
   );

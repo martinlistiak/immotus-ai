@@ -390,7 +390,12 @@ const TreeNode = ({
               }}
             />
           ) : (
-            <div className="border border-transparent w-full max-w-full -m-1 p-1 rounded-sm h-[26px] text-ellipsis overflow-hidden whitespace-nowrap">
+            <div
+              style={{
+                maxWidth: `${216 - (level + 1) * 24}px`,
+              }}
+              className="border border-transparent w-full max-w-full -m-1 p-1 rounded-sm h-[26px] text-ellipsis overflow-hidden whitespace-nowrap"
+            >
               {node.name}
             </div>
           )}
@@ -400,7 +405,7 @@ const TreeNode = ({
           <>
             {isHovered && !isHidden && (
               <IoEyeOutline
-                className="w-[16px] h-[16px] hover:text-gray-300"
+                className="w-[16px] h-[16px] min-w-[16px] min-h-[16px] hover:text-gray-300"
                 onClick={(e) => {
                   e.stopPropagation();
                   onToggleVisibility(node.id, false);
@@ -409,7 +414,7 @@ const TreeNode = ({
             )}
             {isHidden && (
               <IoEyeOffOutline
-                className="w-[16px] h-[16px] hover:text-gray-300"
+                className="w-[16px] h-[16px] min-w-[16px] min-h-[16px] hover:text-gray-300"
                 onClick={(e) => {
                   e.stopPropagation();
                   onToggleVisibility(node.id, true);

@@ -200,6 +200,11 @@ export type SceneType = {
   createdAt: string;
   updatedAt: string;
   objects: SceneObjects;
+  ambientLightIntensity: number;
+  ambientLightColor: string;
+  showGrid: boolean;
+  backgroundColor: string;
+  // environment: "studio" | "outdoor";
 };
 
 export type SceneTool =

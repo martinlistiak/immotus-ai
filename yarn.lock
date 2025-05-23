@@ -1362,6 +1362,7 @@ __metadata:
     "@types/three": "npm:^0.174.0"
     axios: "npm:^1.8.4"
     classnames: "npm:^2.5.1"
+    countly-sdk-web: "npm:^25.4.0"
     dayjs: "npm:^1.11.13"
     immer: "npm:^10.1.1"
     isbot: "npm:^5.1.17"
@@ -5966,6 +5967,13 @@ __metadata:
     typescript:
       optional: true
   checksum: 10c0/0382a9ed13208f8bfc22ca2f62b364855207dffdb73dc26e150ade78c3093f1cf56172df2dd460c8caf2afa91c0ed4ec8a88c62f8f9cd1cf423d26506aa8797a
+  languageName: node
+  linkType: hard
+
+"countly-sdk-web@npm:^25.4.0":
+  version: 25.4.0
+  resolution: "countly-sdk-web@npm:25.4.0"
+  checksum: 10c0/033d05d5b6b5b7193ebc4dd35c1cc62f5a0c01d80b325c265b407ca2b81da52009291de050b78adb2ee9f12ca5fa751007b0fd32b782febb2d02fd38a32a2e43
   languageName: node
   linkType: hard
 

@@ -24,6 +24,18 @@ export class Scene {
   @Column({ type: 'jsonb' })
   objects: SceneObjects;
 
+  @Column({ type: 'float', nullable: false, default: 0.25 })
+  ambientLightIntensity: number;
+
+  @Column({ type: 'varchar', nullable: false, default: '#ffffff' })
+  ambientLightColor: string;
+
+  @Column({ type: 'boolean', nullable: false, default: true })
+  showGrid: boolean;
+
+  @Column({ type: 'varchar', nullable: false, default: '#2D2E32' })
+  backgroundColor: string;
+
   @ManyToMany(() => User, (user) => user.scenes)
   @JoinTable({
     name: 'user_scenes',

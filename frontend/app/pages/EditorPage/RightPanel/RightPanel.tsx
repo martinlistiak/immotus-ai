@@ -3,11 +3,12 @@ import { AttributeInspector } from "./AttributeInspector/AttributeInspector";
 import { useConversationContext } from "app/contexts/conversation.context";
 import { Conversation } from "./Conversation/Conversation";
 import { LuAudioLines } from "react-icons/lu";
-import { useEffect, useRef, useState } from "react";
+import { use, useEffect, useState } from "react";
 import cn from "classnames";
 import { useSceneContext } from "../Scene/Scene.context";
 import { Tabs } from "app/components/Tabs";
 import { Tooltip } from "app/components/Tooltip";
+import { SceneProperties } from "./SceneProperties/SceneProperties";
 
 enum RightPanelTab {
   CONVERSATION = "Conversation",
@@ -16,7 +17,6 @@ enum RightPanelTab {
 
 export const RightPanel = () => {
   const {
-    conversation,
     isSupported,
     toggleRecording,
     isRecording,
@@ -30,8 +30,6 @@ export const RightPanel = () => {
   );
 
   const [message, setMessage] = useState("");
-  const messagesCountRef = useRef<number>(0);
-  const selectedObjectsRef = useRef<[]>([]);
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -62,6 +60,8 @@ export const RightPanel = () => {
       <div className="flex flex-col flex-1">
         {activeTab === RightPanelTab.CONVERSATION && <Conversation />}
         {activeTab === RightPanelTab.ATTRIBUTE && <AttributeInspector />}
+        {activeTab === RightPanelTab.ATTRIBUTE &&
+          selectedObjects.length === 0 && <SceneProperties />}
       </div>
       <div className="m-2 mt-4 absolute bottom-0 left-0 right-0 p-2 bg-gray-800 rounded-lg text-[10px]">
         <textarea
